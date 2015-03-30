@@ -29,7 +29,7 @@ TEST_FILE  = "../data/test.csv"
 OUTPUT_FOLDER = "output"
 RESULT_FILES = OUTPUT_FOLDER + "/Best_Classification.csv"
 EMAIL_FILE = "emailAdress.txt"
-NB_SAMPLES = 1000
+NB_SAMPLES = 42000
 VARIANCE_TO_KEEP = 0.85
 
 
@@ -272,18 +272,19 @@ def main():
     assert(n_raw == n_test)
 
 
-    # TODO : cross validate here each models
+    # TODO : cross validate here each models to find the best parameters
     # TODO ; check SVM and RBM, they does not work
 
 
     # ==== DIMENSION REDUCTION ====
+    # Variance = 0.85 => 54  features
     # Variance = 0.90 => 85  features
     # Variance = 0.95 => 149 features
     # Variance = 0.96 => 174 features
     # Variance = 0.97 => 207 features
     # Variance = 0.98 => 252 features
     # Variance = 0.99 => 322 features
-    (pca, X_afterPca) = pcaReduction(X_raw, VARIANCE_TO_KEEP)
+    (pca, X_train_afterPca) = pcaReduction(X_raw, VARIANCE_TO_KEEP)
     X_test_afterPca = pca.transform(X_test)
 
     # ==== CROSS VALIDATION ====
@@ -292,33 +293,45 @@ def main():
 #    print( bestParams )
 
     # ==== CLASSIFICATION ====
-    (lda, y_hat_lda, error) = linearDiscriminantAnalysis(X_afterPca, y, X_test_afterPca)
+    (lda, classifLdaTrain, error) = linearDiscriminantAnalysis(X_train_afterPca, y, X_train_afterPca)
+    classifLdaTest = lda.predict(X_test_afterPca)
     print( "LDA accuracy : " + str(error) )
 
-    (regLog, y_hat_regLog, error) = logisticReg(X_afterPca, y, X_test_afterPca)
+    (regLog, classifRegLogTrain, error) = logisticReg(X_train_afterPca, y, X_train_afterPca)
+    classifRegLogTest = regLog.predict(X_test_afterPca)
     print( "RegLog accuracy : " + str(error) )
 
-    (knn, y_hat_knn, error) = knnClassif(X_afterPca, y, X_test_afterPca)
+    (knn, classifKnnTrain, error) = knnClassif(X_train_afterPca, y, X_train_afterPca)
+    classifKnnTest = knn.predict(X_test_afterPca)
     print( "KNN accuracy : " + str(error) )
 
-    (forest, y_hat_forest, error) = randomForest(X_afterPca, y, X_test_afterPca)
+    (forest, classifForestTrain, error) = randomForest(X_train_afterPca, y, X_train_afterPca)
+    classifForestTest = forest.predict(X_test_afterPca)
     print( "Random forest accuracy : " + str(error) )
+    # 99.7 % de bonne classif en train, 90% en test -> Overfitting !!!!!
+    # Need to find the best parameters for the random forests
 
-#    (svm, y_hat_svm, error) = svmClassif(X_afterPca, y, X_test_afterPca)
-    print( "SVM accuracy : " + str(error) )
+#    (svm, classifSvmTrain, error) = svmClassif(X_afterPca, y, X_test_afterPca)
+#    classifSvmTest = svm.predict(X_test_afterPca)
+#    print( "SVM accuracy : " + str(error) )
 
-#    (rbmClassif, y_hat_rbm, error) = restrictedBoltzmanMachine(X_raw, y, X_test)
-    print( "RBM accuracy : " + str(error) )
+#    (rbmClassifier, classifRbmTrain, error) = restrictedBoltzmanMachine(X_raw, y, X_test)
+#    classifRbmTest = rbmClassifer.predict(X_test_afterPca)
+#    print( "RBM accuracy : " + str(error) )
 
     # ==== USE PREVIOUS ESTIMATES AS INPUT ====
     # IE : use classifiers as a dimension reduction
-    X_estim = [lda.predict(X_afterPca),
-               regLog.predict(X_afterPca),
-               knn.predict(X_afterPca),
-               forest.predict(X_afterPca)]
-    X_estim = list(map(lambda *row: list(row), *X_estim)) # Transpose
-    (forestEstim, y_hat_estim, error) = randomForest(X_estim, y, X_estim)
+    X_estim = [classifLdaTrain , classifRegLogTrain, classifKnnTrain, classifForestTrain]
+    X_train_estim = pandas.DataFrame( X_estim ).transpose()
+
+    y_estim = [classifLdaTest , classifRegLogTest, classifKnnTest, classifForestTest]
+    X_test_estim = pandas.DataFrame( y_estim ).transpose()
+
+    (forestEstim, y_hat, error) = randomForest(X_train_estim, y, X_test_estim)
     print( "Classify from classifiers accuracy : " + str(error) )
+
+    saveArrayToFile( y_hat, "RandomForestEstim" )
+
 
 #    (svm_estim, error) = logisticReg(X_estim, y)
 #    print( "Classify from estimates : " + str(error) )
