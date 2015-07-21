@@ -6,9 +6,6 @@ import pandas     # for read_csv function
 import numpy
 import time
 
-from email.mime.multipart import MIMEMultipart
-import smtplib
-
 from sklearn.decomposition import PCA
 
 from sklearn.lda import LDA
@@ -20,17 +17,19 @@ from sklearn.neural_network import BernoulliRBM
 
 from sklearn.metrics import accuracy_score, classification_report
 from sklearn.pipeline import Pipeline
-from sklearn.cross_validation import train_test_split
+from sklearn.cross_validation import train_test_split, KFold
 from sklearn.grid_search import GridSearchCV
+
+import matplotlib.pyplot as plt
 
 
 TRAIN_FILE = "../data/train.csv"
 TEST_FILE  = "../data/test.csv"
 OUTPUT_FOLDER = "output"
 RESULT_FILES = OUTPUT_FOLDER + "/Best_Classification.csv"
-EMAIL_FILE = "emailAdress.txt"
-NB_SAMPLES = 42000
-VARIANCE_TO_KEEP = 0.85
+
+NB_SAMPLES = 2000 # 42000
+VARIANCE_TO_KEEP = 0.95
 
 
 ##########################
@@ -64,7 +63,7 @@ def readTrainingSet():
     N = data.shape[1]               # 785 = 28 * 28 pixels + 1
     y = data['label']               # Number written in the picture
     X = data.iloc[0:NB_SAMPLES,1:]  # features
-    return M, N-1, X, y[0:NB_SAMPLES]
+    return M, N-1, X.values, y[0:NB_SAMPLES].values
 def readTestSet():
     data = pandas.read_csv(TEST_FILE,delimiter=',')
     M = data.shape[0]   # Number of pictures
@@ -92,17 +91,6 @@ def readOutPutFiles():
     data = pandas.read_csv(RESULT_FILES, delimiter=',')
     return data
 
-def sendEmail():
-    msg = MIMEMultipart()
-    msg['Subject'] = "Job done"
-    msg['From'] = ""
-    msg['To'] = ""
-
-    # Send the message via our own SMTP server.
-    s = smtplib.SMTP('localhost')
-    s.send_message(msg)
-    s.quit()
-
 ##########################
 # Dimension reduction
 ##########################
@@ -129,13 +117,11 @@ def pcaReduction(X, variance:float) -> PCA:
 def classifyData(classifier, X_train, y_train, X_test, classifierName=''):
     """
     :param classifier: classifier.fit and classifier.predict must be defined
-    :param X_train:     training set
-    :param y_train:     training target / label
-    :param X_test:      test set                if not provided, use X_train and y_train
-    :param y_test:      test target / label
-    :param classifierName: if provided, write test estimates to file classifierName.csv
-    :return: if y_test provided, return the % of good classification on test set
-            otherwise, return error on training set
+    :param X_train:         training set
+    :param y_train:         training target / label
+    :param X_test:          test set
+    :param classifierName:  write test estimates to file classifierName.csv
+    :return: predictions for X_test + % of good classification on train set
     """
     error_test = 0
 
@@ -149,27 +135,23 @@ def classifyData(classifier, X_train, y_train, X_test, classifierName=''):
 
     return y_hat_test, errorTrain
 
-    error = 0
-
-    if X_test is None:
-        X_test = X_train
-        y_test = y_train
-
-    if y_test is None:
-        y_hat = classifier.predict(X_train)
-        error = computeError(y_train, y_hat)
-        y_hat = classifier.predict(X_test)
-    else:
-        y_hat = classifier.predict(X_test)
-        error = computeError(y_test, y_hat)
-
-    if len(classifierName) > 0:
-        saveArrayToFile(y_hat, classifierName)
-
-    return error
-
 def linearDiscriminantAnalysis(X_train, y_train, X_test):
     lda = LDA()
+    solvers = ['svd', 'lsqr', 'eigen']
+    shrinkages = [None, 'auto', 0.90, 0.95, 0.96, 0.97, 0.98, 0.99, 0.995]
+    parameters = {'solver':solvers, 'n_components': [5, 50, 200]}
+    estimator = GridSearchCV(lda, parameters, cv=5, n_jobs=1)    # ,shrinkage=['auto']
+    estimator.fit(X_train, y_train)
+
+    bestSolver    = estimator.best_estimator_.solver
+#    bestShrinkage = estimator.best_estimator_.shrinkage
+    bestNbComponents = estimator.best_estimator_.n_components
+    print( "BestSolver : {0}".format(bestSolver) )
+    print( "n_components : {0}".format(bestNbComponents) )
+
+    lda = LDA(solver=bestSolver, n_components=bestNbComponents)
+    print("Best solver : {0}, nb params : {1}".format(bestSolver, bestNbComponents))
+
     (y_hat_test, errorTrain) = classifyData(lda, X_train, y_train, X_test, 'LDA')
     return lda, y_hat_test, errorTrain
 
@@ -233,6 +215,41 @@ def restrictedBoltzmanMachine(X_train, y_train, X_test):
 ##########################
 # X-Validation
 ##########################
+def crossValidate(classifier, X, y):
+    kf_total = KFold(X.shape[0], n_folds=10, shuffle=True, random_state=4)
+
+    score = 1.0
+    for train_indices, test_indices in kf_total:
+        classifier.fit(X[train_indices, :], y[train_indices])
+        current_score = classifier.score(X[test_indices], y[test_indices])
+        score = min( score, current_score )     # choose worst score
+    return score
+
+def optimizeParams(classifier, X, y, **parameters):
+    clf = GridSearchCV(classifier, parameters, cv=10)
+    clf.fit(X, y)
+#    print( clf.best_params_ )
+#    print( clf.best_score_  )
+    return clf.best_params_
+
+def findBestParamsRandomForest(X, y):
+    pca = PCA()
+    rf = RandomForestClassifier()
+    pipeline = Pipeline([('pca', pca), ('rf', rf)])
+
+    parameters = {
+        'pca__n_components' : list(range(0.80,0.99,0.1)),
+        'rf__n_estimators'  : [5,10,15,20,50,75,100],
+        'rf__max_leaf_nodes': list(range(100,500,25))
+    }
+
+    estimator = GridSearchCV(pipeline, parameters, cv=10, n_jobs=2)
+    estimator.fit(X, y)
+
+    print( estimator.best_params_ )
+    return
+
+
 def crossValidateSvmGrid(X_train, y_train):
     parameters = {
         'kernel' : ['rbf'], #, 'linear', 'rbf', 'sigmoid'),
@@ -268,8 +285,51 @@ def main():
 
     # ==== READ DATA ====
     (m_raw, n_raw, X_raw, y) = readTrainingSet()
-    (m_test, n_test, X_test) = readTestSet()
-    assert(n_raw == n_test)
+#    (m_test, n_test, X_test) = readTestSet()
+#    assert(n_raw == n_test)
+
+    findBestParamsRandomForest(X_raw, y)
+
+
+    return
+
+
+
+    parameters = {'max_leaf_nodes':(list(range(2,500,5))), }
+    rf = RandomForestClassifier(n_jobs=2)
+    print( optimizeParams(rf, X_raw, y, **parameters) )
+
+    return
+
+    errors = numpy.zeros(100)
+    for i in range(2,500,2):
+        print( "Training step " + str(i) )
+        rf = RandomForestClassifier(max_leaf_nodes=i, n_jobs=-1)
+        errors[i] = crossValidate(rf, X_raw, y)
+
+    print( errors )
+
+    for i in range(50) :
+        print( i )
+
+
+
+
+    score = 0
+    for i in range(6):
+        test = X_raw[test_indices].transpose()[i]
+        y_hat = y[test_indices][i]
+        print(test)
+        print( y_hat )
+
+    return
+    print()
+
+    scores = [lr.fit(X_raw[train_indices], y[train_indices])
+                .score(X_raw[test_indices],y[test_indices])
+              for train_indices, test_indices in kf_total
+    ]
+    print( scores )
 
 
     # TODO : cross validate here each models to find the best parameters
@@ -284,8 +344,8 @@ def main():
     # Variance = 0.97 => 207 features
     # Variance = 0.98 => 252 features
     # Variance = 0.99 => 322 features
-    (pca, X_train_afterPca) = pcaReduction(X_raw, VARIANCE_TO_KEEP)
-    X_test_afterPca = pca.transform(X_test)
+#    (pca, X_train_afterPca) = pcaReduction(X_raw, VARIANCE_TO_KEEP)
+#    X_test_afterPca = pca.transform(X_test)
 
     # ==== CROSS VALIDATION ====
 #    crossValidateSvmCustom(X_afterPca, y)
@@ -293,21 +353,25 @@ def main():
 #    print( bestParams )
 
     # ==== CLASSIFICATION ====
-    (lda, classifLdaTrain, error) = linearDiscriminantAnalysis(X_train_afterPca, y, X_train_afterPca)
-    classifLdaTest = lda.predict(X_test_afterPca)
-    print( "LDA accuracy : " + str(error) )
+#    (lda, classifLdaTrain, error) = linearDiscriminantAnalysis(X_train_afterPca, y, X_train_afterPca)
+#    classifLdaTest = lda.predict(X_test_afterPca)
+#    print( "LDA accuracy__ : " + str(error) )
 
-    (regLog, classifRegLogTrain, error) = logisticReg(X_train_afterPca, y, X_train_afterPca)
-    classifRegLogTest = regLog.predict(X_test_afterPca)
-    print( "RegLog accuracy : " + str(error) )
+#    (lda, classifLdaTrain, error) = linearDiscriminantAnalysis(X_train_afterPca, y, X_train_afterPca)
+#    classifLdaTest = lda.predict(X_test_afterPca)
+#    print( "LDA accuracy : " + str(error) )
 
-    (knn, classifKnnTrain, error) = knnClassif(X_train_afterPca, y, X_train_afterPca)
-    classifKnnTest = knn.predict(X_test_afterPca)
-    print( "KNN accuracy : " + str(error) )
+#    (regLog, classifRegLogTrain, error) = logisticReg(X_train_afterPca, y, X_train_afterPca)
+#    classifRegLogTest = regLog.predict(X_test_afterPca)
+#    print( "RegLog accuracy : " + str(error) )
 
-    (forest, classifForestTrain, error) = randomForest(X_train_afterPca, y, X_train_afterPca)
-    classifForestTest = forest.predict(X_test_afterPca)
-    print( "Random forest accuracy : " + str(error) )
+#    (knn, classifKnnTrain, error) = knnClassif(X_train_afterPca, y, X_train_afterPca)
+#    classifKnnTest = knn.predict(X_test_afterPca)
+#    print( "KNN accuracy : " + str(error) )
+
+#    (forest, classifForestTrain, error) = randomForest(X_train_afterPca, y, X_train_afterPca)
+#    classifForestTest = forest.predict(X_test_afterPca)
+#    print( "Random forest accuracy : " + str(error) )
     # 99.7 % de bonne classif en train, 90% en test -> Overfitting !!!!!
     # Need to find the best parameters for the random forests
 
@@ -321,16 +385,16 @@ def main():
 
     # ==== USE PREVIOUS ESTIMATES AS INPUT ====
     # IE : use classifiers as a dimension reduction
-    X_estim = [classifLdaTrain , classifRegLogTrain, classifKnnTrain, classifForestTrain]
-    X_train_estim = pandas.DataFrame( X_estim ).transpose()
+#    X_estim = [classifLdaTrain , classifRegLogTrain, classifKnnTrain, classifForestTrain]
+#    X_train_estim = pandas.DataFrame( X_estim ).transpose()
 
-    y_estim = [classifLdaTest , classifRegLogTest, classifKnnTest, classifForestTest]
-    X_test_estim = pandas.DataFrame( y_estim ).transpose()
+#    y_estim = [classifLdaTest , classifRegLogTest, classifKnnTest, classifForestTest]
+#    X_test_estim = pandas.DataFrame( y_estim ).transpose()
 
-    (forestEstim, y_hat, error) = randomForest(X_train_estim, y, X_test_estim)
-    print( "Classify from classifiers accuracy : " + str(error) )
+#    (forestEstim, y_hat, error) = randomForest(X_train_estim, y, X_test_estim)
+#    print( "Classify from classifiers accuracy : " + str(error) )
 
-    saveArrayToFile( y_hat, "RandomForestEstim" )
+#    saveArrayToFile( y_hat, "RandomForestEstim" )
 
 
 #    (svm_estim, error) = logisticReg(X_estim, y)
@@ -341,7 +405,7 @@ def main():
 
     # Job done -> send email to see it on the smartphone !!! G33k :p
 #    sendEmail()
-
+    pass
 
 
 #########################"
