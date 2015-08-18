@@ -9,18 +9,12 @@ import sys
 from datetime import datetime
 
 from sklearn.decomposition import PCA
-from sklearn.metrics import accuracy_score
-
 from sklearn.lda import LDA
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import BernoulliRBM
-
-from sklearn.pipeline import Pipeline
-from sklearn.grid_search import GridSearchCV
-from sklearn.cross_validation import cross_val_score
 
 import xgboost as xgb
 

@@ -96,10 +96,10 @@ def findBestParams_KNN(X, y):
         'pca__n_components' : PCA_VARIANCES,
         'knn__n_neighbors'  : [3], # list(range(1,3,2)),
         'knn__weights'      : ['uniform', 'distance'],
-        'knn__algorithm'    : ['ball_tree', 'kd_tree'],
+        'knn__algorithm'    : ['kd_tree'], # 'ball_tree',
         'knn__leaf_size'    : [100], # [15, 30, 50, 100],
         'knn__metric'       : ['minkowski'],
-        'knn__p'            : [1, 2]
+        'knn__p'            : [1, np.inf]
     }
     findBestParams(X, y, 'KNN', pipeline, parameters)
     return

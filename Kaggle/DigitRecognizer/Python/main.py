@@ -13,14 +13,9 @@ from MyCrossValidation import *
 from MyClassification import *
 
 from sklearn.decomposition import PCA
-from sklearn.lda import LDA
-from sklearn.linear_model import LogisticRegression
-from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.neural_network import BernoulliRBM
-
-import xgboost as xgb
 
 
 ## A regarder
