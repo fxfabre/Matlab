@@ -26,6 +26,16 @@ import xgboost as xgb
 # Tools
 ##########################
 def findBestParams(X, y, fileName, classifier, parameters):
+    values = set( y )
+    if len( values ) == 2:
+        return _findBestParams(X, y, fileName, classifier, parameters)
+
+    for i in set(y):
+        y_binaryClassif = [ int(x==i) for x in y ]
+        _findBestParams( X, y_binaryClassif, fileName + '_' + str(i), classifier, parameters )
+
+# Run CrossValidation with 2 classes
+def _findBestParams(X, y, fileName, classifier, parameters):
     print( str( datetime.now() ) + " : Processing of " + fileName)
 
     # Run cross validation and save displayed text in log file

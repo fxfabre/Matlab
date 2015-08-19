@@ -73,8 +73,14 @@ def readTrainingSet():
     N = data.shape[1]               # 785 = 28 * 28 pixels + 1
     y = data['label']               # Number written in the picture
     X = data.iloc[1:NB_SAMPLES+1, :]  # features
-    y = [ int(i) for i in (y==0) ]
-    return M, N-1, X.values, y[0:NB_SAMPLES]
+    
+    # Mean - center the matrix X
+    X = X.values
+    X = ( X - X.mean(0) )
+    X = [ X[i,:] / X.std(0) for i in range(len(X)) ]
+    X = np.array( X )
+    
+    return M, N-1, X, y[0:NB_SAMPLES]
 
 def readTestSet():
     data = pandas.read_csv(TEST_FILE,delimiter=',')
