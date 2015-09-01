@@ -32,6 +32,9 @@ VARIANCE_TO_KEEP = 0.95
 
 
 
+
+
+
 ##########################
 # Tools
 ##########################
@@ -70,26 +73,6 @@ def saveArrayToFile(y:numpy.ndarray, fileName):
 def readOutPutFiles():
     data = pandas.read_csv(RESULT_FILES, delimiter=',')
     return data
-
-##########################
-# Dimension reduction
-##########################
-def pcaReduction(X, variance:float) -> PCA:
-    # PCA('mle')   -> keep min(dataSamples, features) features
-    # PCA( float ) -> keep the given variance
-    # PCA( n )     -> keep n features
-    pca = PCA(variance)
-    X_afterPca = pca.fit_transform( X )
-
-    nComponents = str(pca.n_components_)
-    eigenValues = pca.explained_variance_ratio_
-    explainedVariance = sum(eigenValues)
-
-    print( 'Number of features to keep : ' + nComponents)
-    print( 'PCA : Explained variance : ' + str(explainedVariance))
-
-    return pca, X_afterPca
-
 
 ##########################
 # Classification
