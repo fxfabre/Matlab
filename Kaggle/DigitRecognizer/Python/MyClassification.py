@@ -1,6 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+from Common import *
+
 import pandas     # for read_csv function
 import numpy as np
 import scipy
@@ -19,37 +21,61 @@ from sklearn.neural_network import BernoulliRBM
 import xgboost as xgb
 
 
-
 #############################
 
-def classifyData(classifier, X_train, y_train):
+def classifyData(classifier, X_train, y, X_test, classifierName, variance=1):
     """
     :param classifier: classifier.fit and classifier.predict must be defined
-    :param X_train:         training set
-    :param y_train:         training target / label
+    :param X_train:    training set
+    :param y:          training target / label
     :param classifierName:  write test estimates to file classifierName.csv
     :return: predictions for X_test + % of good classification on train set
     """
-    error_test = 0
+    pca = None
+    if variance < 1:
+        pca, X_train = pcaReduction(X_train, variance)
+        X_test = pca.transform( X_test )
 
-    classifier.fit(X_train, y_train)
+    classifier.fit(X_train, y)
     y_hat_train = classifier.predict(X_train)
-    errorTrain = computeError(y_train, y_hat_train)
-    return errorTrain
+    errorTrain = computeError(y, y_hat_train)
+    print( 'Train error {0} : {1}'.format(classifierName, str(errorTrain)) )
 
-def knnClassif(X_train, y_train):
+    y_hat = classifier.predict( X_test )
+    np.savetxt( 'Prediction/' + classifierName + '.txt', y_hat )
+
+    return y_hat
+
+def knnClassif(X, y, X_test):
     parameters = {
-        'n_neighbors'  : 1,
+        'n_neighbors'  : 15,
         'weights'      : 'uniform',
         'algorithm'    : 'kd_tree',
-        'leaf_size'    : 100,
+        'leaf_size'    : 30,
         'metric'       : 'minkowski',
         'p'            : 1
     }
     knn = KNeighborsClassifier(**parameters)
-    errorTrain = classifyData(knn, X_train, y_train, "KNN")
-    print( 'error KNN : ' + str(errorTrain) )
-    return
+    y_hat = classifyData(knn, X, y, X_test, "KNN", 0.8)
+    return y_hat
+
+def ldaClassif(X, y, X_test):
+    parameters = {
+        'solver'    : 'lsqr',
+        'shrinkage' : 'auto'
+    }
+    lda = LDA(**parameters)
+    y_hat = classifyData(lda, X, y, X_test, "LDA", 0.8)
+    return y_hat
+
+def RandomForestClassif(X, y, X_test):
+    parameters = {
+        'n_estimator'   : '100',
+        'max_leaf_node' : '200'
+    }
+    rf = RandomForestClassifier(**parameters)
+    y_hat = classifyData(rf, X, y, X_test, "RandomForest", 0.8)
+    return y_hat
 
 def svmClassif(X_train, y_train):
     pca = PCA(n_components=10)
@@ -93,3 +119,4 @@ def XgradientBoost(X, y, X_test):
     y_hat = model.predict( X_test )
 
 #    ypred = bst.predict(dtest)
+

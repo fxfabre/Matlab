@@ -3,9 +3,8 @@
 
 
 from Common import *
-
-from sklearn.decomposition import PCA
-from sklearn.metrics import accuracy_score
+from datetime import datetime
+import sys
 
 from sklearn.lda import LDA
 from sklearn.linear_model import LogisticRegression
@@ -14,6 +13,8 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import BernoulliRBM
 
+from sklearn.decomposition import PCA
+from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
