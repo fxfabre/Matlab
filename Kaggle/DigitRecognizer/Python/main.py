@@ -16,7 +16,7 @@ from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
-
+from sklearn import preprocessing
 
 ## A regarder
 # ridge regression
@@ -60,6 +60,12 @@ def main():
     (m_raw, n_raw, X_raw, y) = readTrainingSet()
     (m_test, n_test, X_test) = readTestSet()
     assert(n_raw == n_test)
+
+    # === Pre processing ===
+    scaler = preprocessing.StandardScaler().fit( X_raw )
+    X_scaled = scaler.transform(X_raw)
+    # mean(X_scaled), std(X_scaled) = 0, 1
+
 
     # ==== Cross validation & estimation ====
 #    findBestParams_LDA(X_raw, y)
