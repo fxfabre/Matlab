@@ -27,7 +27,7 @@ import xgboost as xgb
 
 TRAIN_FILE = "../data/train.csv"
 TEST_FILE  = "../data/test.csv"
-NB_SAMPLES = 40000 # 42000
+NB_SAMPLES = 1000 # 42000
 NB_THREADS = 1
 VERBOSE_LEVEL = 3
 NB_CV = 4

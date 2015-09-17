@@ -7,17 +7,18 @@ import scipy
 import time
 import sys
 from datetime import datetime
-from math import sqrt
 
 from Common import *
 from MyCrossValidation import *
 from MyClassification import *
+import Filters
 
 from sklearn.decomposition import PCA
 from sklearn.svm import SVC
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
+from sklearn.metrics import accuracy_score
 
 from sklearn.linear_model import LassoCV
 
@@ -30,6 +31,8 @@ from matplotlib import pyplot
 # Naive bayes ?
 # LassoCV
 # ElasticNetCV
+
+# accuaracy_score, parametre normalize ?
 
 
 ##########################
@@ -101,70 +104,29 @@ def main():
     # mean(X_scaled), std(X_scaled) = 0, 1
 
     # X_scaled not invertible => remove columns
-    pca = PCA(784)
-    pca.fit( X_scaled )
-    eigenVal = [ x for x in pca.explained_variance_ if abs(x) > 1e-8 ]
-    print("We can keep {0} components without loosing information".format(len(eigenVal)) )
-
-    # Keep same information in dataset, remove useless parameters (parameters with variance < 1e-8)
-    N_features = len(eigenVal)
-    pca = PCA( N_features )
-    X_after_PCA = pca.fit_transform( X_scaled )
-    # if keep 640 components : det( X_after_PCA ) = 2.17628211139e-114
-    # if keep 635 components : det( X_after_PCA ) = 1.42486552624e+22
-    # if keep 630 components : det( X_after_PCA ) = 3.59056547778e+157
-    # if keep 590 components : det( X_after_PCA ) = np.inf, variance > 0.99
-    print("mean(X) = {0}, std(X) = {1}".format(
-        max(np.mean(X_after_PCA, axis=0)),
-        max(np.std( X_after_PCA, axis=0))
-    ))
-
+    pca, X_after_PCA = Filters.pca100pourcent( X_scaled )
 
     # === Feature selection : recherche dépendances linéaires.
-    XtX = np.dot( X_after_PCA.T, X_after_PCA )
-    det = np.linalg.det( XtX )
-    print("det( XtX ) = " + str(det))
-    assert(det > 1e-3)
-    # assert det not null, ie : matrix XtX not singular
-    # assert that columns of X_after_PCA are not linearly dependants
 
-    # === Feature selection : compute Z-score
-    beta_hat = np.linalg.inv( XtX ).dot( X_after_PCA.T).dot(y)
-    print( beta_hat )
-
-    zScores = np.zeros( N_features )
-    diago = np.diag( XtX )
-    assert(len(diago) == N_features)
-    sigma = np.std(X_after_PCA, axis=0)
-    assert(len(diago) == len(sigma))
-    for i in range( N_features ):
-        zScores[i] = beta_hat[i] / (sigma[i] * sqrt(diago[i]))
-    print("Z-scores : " + str(len(zScores)))
-    print( zScores )
-
-    scores_to_keep = [x for x in zScores if abs(x) > 2]
-    print("Scores to keep : " + str(len(scores_to_keep)))
-    print(scores_to_keep)
-
-    return
-
-
+    # === Feature selection : Z-Score
+#    X_zscore, zScores = Filters.compute_Z_score(X_scaled, y)
 
 
     # === Feature selection : Lasso
-    lassoCV = LassoCV(cv=5, n_jobs=2)
-    lassoCV.fit(X_after_PCA)
+    print( "Running Lasso")
+    lassoCV = LassoCV(cv=5, n_jobs=2, max_iter=2000)
+    lassoCV.fit(X_after_PCA, y)
     y_hat = lassoCV.predict( X_after_PCA )
     error = accuracy_score(y, y_hat, normalize=True)
-    print( "Erreur avec LassoCV : " + str(error))
+    print( "Erreur avec LassoCV : " + str(error) )
 
     # ==== Cross validation & estimation ====
-#    findBestParams_LDA(X_raw, y)
-#    findBestParams_RegLog(X_raw, y)
-#    findBestParams_KNN(X_raw, y)
-#    findBestParams_RandomForest(X_raw, y)
-#    findBestParams_SVM(X_raw, y)
-#    findBestParams_RBM(X_raw, y)
+#    findBestParams_LDA(X_after_PCA, y)
+#    findBestParams_RegLog(X_after_PCA, y)
+#    findBestParams_KNN(X_after_PCA, y)
+#    findBestParams_RandomForest(X_after_PCA, y)
+#    findBestParams_SVM(X_after_PCA, y)
+#    findBestParams_RBM(X_after_PCA, y)
 
 #    knnClassif(X_raw, y)
 #    svmClassif(X_raw, y)

@@ -14,7 +14,6 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import BernoulliRBM
 
 from sklearn.decomposition import PCA
-from sklearn.metrics import accuracy_score
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
@@ -26,6 +25,25 @@ import xgboost as xgb
 ##########################
 # Tools
 ##########################
+
+def findBestParams_PCA(X, y, pcaValues, fileName, classifier, parameters):
+    values = set( y )
+
+    for variance in pcaValues:
+        pca = PCA( variance )
+        X_after_PCA = pca.fit_transform( X )
+
+        if len( values ) == 2:
+            print( "Cross validation, variance " + str(variance))
+            _findBestParams(X_after_PCA, y, fileName + '_' + variance, classifier, parameters)
+            return
+
+        for i in set(y):
+            print( "Cross validation, class {0}, variance {1}".format(i, variance))
+            y_binaryClassif = [ int(x==i) for x in y ]
+            _findBestParams( X_after_PCA, y_binaryClassif, fileName + '_' + str(i) + '_' + variance, classifier, parameters )
+
+
 def findBestParams(X, y, fileName, classifier, parameters):
     values = set( y )
     if len( values ) == 2:
@@ -77,89 +95,74 @@ def findBestParams_LDA(X, y):
     return
 
 def findBestParams_RegLog(X, y):
-    pipeline = Pipeline([('pca', PCA()), ('reglog', LogisticRegression(max_iter=10000))])
-
+    regLog = LogisticRegression(max_iter=10000)
     parameters = [{
-        'pca__n_components' : PCA_VARIANCES,
-        'reglog__penalty'   : ['l1', 'l2'],
-        'reglog__C'         : REGLOG_C,
-        'reglog__solver'    : ['liblinear']
+        'penalty'   : ['l1', 'l2'],
+        'C'         : REGLOG_C,
+        'solver'    : ['liblinear']
     },
     {
-        'pca__n_components' : PCA_VARIANCES,
-        'reglog__penalty'   : ['l2'],
-        'reglog__C'         : REGLOG_C,
-        'reglog__solver'    : ['newton-cg']
+        'penalty'   : ['l2'],
+        'C'         : REGLOG_C,
+        'solver'    : ['newton-cg']
     },
     {
-        'pca__n_components' : PCA_VARIANCES,
-        'reglog__penalty'   : ['l2'],
-        'reglog__C'         : REGLOG_C,
-        'reglog__solver'    : ['lbfgs'],
-        'reglog__multi_class' : ['ovr', 'multinomial']
+        'penalty'   : ['l2'],
+        'C'         : REGLOG_C,
+        'solver'    : ['lbfgs'],
+        'multi_class' : ['ovr', 'multinomial']
     }]
-    findBestParams(X, y, 'Result_RegLog', pipeline, parameters)
+    findBestParams_PCA(X, y, PCA_VARIANCES, 'Result_RegLog', regLog, parameters)
     return
 
 def findBestParams_KNN(X, y):
-    pipeline = Pipeline([('pca', PCA()), ('knn', KNeighborsClassifier())])
+    knn = KNeighborsClassifier()
     parameters = {
-        'pca__n_components' : PCA_VARIANCES,
-        'knn__n_neighbors'  : [3], # list(range(1,3,2)),
-        'knn__weights'      : ['uniform', 'distance'],
-        'knn__algorithm'    : ['kd_tree'], # 'ball_tree',
-        'knn__leaf_size'    : [100], # [15, 30, 50, 100],
-        'knn__metric'       : ['minkowski'],
-        'knn__p'            : [1, np.inf]
+        'n_neighbors'  : [7, 11, 15, 19],
+        'weights'      : ['uniform', 'distance'],
+        'algorithm'    : ['kd_tree'], # 'ball_tree',
+        'leaf_size'    : [100], # [15, 30, 50, 100],
+        'metric'       : ['minkowski'],
+        'p'            : [1, 2, np.inf]
     }
-    findBestParams(X, y, 'KNN', pipeline, parameters)
+    findBestParams_PCA(X, y, PCA_VARIANCES, 'KNN', knn, parameters)
     return
 
 def findBestParams_RandomForest(X, y):
     rf = RandomForestClassifier()
-    pipeline = Pipeline([('pca', PCA()), ('rf', rf)])
     parameters = {
-        'pca__n_components' : PCA_VARIANCES,
-        'rf__n_estimators'  : [5, 10], # [5,10,20,50,75,100],
-        'rf__max_leaf_nodes': [100], #list(range(100,500,50))
+        'n_estimators'  : [5, 10], # [5,10,20,50,75,100],
+        'max_leaf_nodes': [100], #list(range(100,500,50))
     }
-    findBestParams(X, y, 'Result_RandomForest', pipeline, parameters)
+    findBestParams_PCA(X, y, PCA_VARIANCES, 'Result_RandomForest', rf, parameters)
     return
 
 def findBestParams_SVM(X, y):
-    pipeline = Pipeline([('pca', PCA()), ('svm', SVC())])
-
+    svm = SVC()
     parameters = [{
-        'pca__n_components' : PCA_VARIANCES,
-        'svm__C'            : SVM_C,
-        'svm__kernel'       : ['linear']
+        'C'            : SVM_C,
+        'kernel'       : ['linear']
     },
     {
-        'pca__n_components' : PCA_VARIANCES,
-        'svm__C'            : SVM_C,
-        'svm__kernel'       : ['poly'],
-        'svm__degree'       : [1, 2, 3, 4],
-        'gamma'             : [1] # [0.001, 0.01, 0.1, 0.5, 1]
+        'C'            : SVM_C,
+        'kernel'       : ['poly'],
+        'degree'       : [1, 2, 3, 4],
+        'gamma'        : [1] # [0.001, 0.01, 0.1, 0.5, 1]
     },
     {
-        'pca__n_components' : PCA_VARIANCES,
-        'svm__C'            : SVM_C,
-        'svm__kernel'       : ['rbf', 'sigmoid']
+        'C'            : SVM_C,
+        'kernel'       : ['rbf', 'sigmoid']
     }]
-    findBestParams(X, y, 'Result_SVM', pipeline, parameters)
+    findBestParams_PCA(X, y, PCA_VARIANCES, 'Result_SVM', svm, parameters)
     return
 
 def findBestParams_RBM(X, y):
-    pca = PCA()
     rbm = BernoulliRBM()
-    pipeline = Pipeline([('pca', pca), ('rbm', rbm)])
-
     parameters = {
-        'pca__n_components' : PCA_VARIANCES,
-        'rbm__n_components' : [50, 200, 500, 1000],
-        'rbm__learning_rate': [0.1], # [0.001, 0.01, 0.1],
-        'rbm__n_iter'       : ['liblinear']
+        'n_components' : [50, 200, 500, 1000],
+        'learning_rate': [0.1], # [0.001, 0.01, 0.1],
+        'n_iter'       : ['liblinear']
     }
-    findBestParams(X, y, 'Result_BernoulliRBM', pipeline, parameters)
+    findBestParams_PCA(X, y, PCA_VARIANCES, 'Result_BernoulliRBM', rbm, parameters)
     return
 
