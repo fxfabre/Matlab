@@ -113,20 +113,20 @@ def main():
 
 
     # === Feature selection : Lasso
-    print( "Running Lasso")
-    lassoCV = LassoCV(cv=5, n_jobs=2, max_iter=2000)
-    lassoCV.fit(X_after_PCA, y)
-    y_hat = lassoCV.predict( X_after_PCA )
-    error = accuracy_score(y, y_hat, normalize=True)
-    print( "Erreur avec LassoCV : " + str(error) )
+#    print( "Running Lasso")
+#    lassoCV = LassoCV(cv=5, n_jobs=2, max_iter=2000)
+#    lassoCV.fit(X_after_PCA, y)
+#    y_hat = lassoCV.predict( X_after_PCA )
+#    error = accuracy_score(y, y_hat, normalize=True)
+#    print( "Erreur avec LassoCV : " + str(error) )
 
     # ==== Cross validation & estimation ====
-#    findBestParams_LDA(X_after_PCA, y)
-#    findBestParams_RegLog(X_after_PCA, y)
-#    findBestParams_KNN(X_after_PCA, y)
-#    findBestParams_RandomForest(X_after_PCA, y)
-#    findBestParams_SVM(X_after_PCA, y)
-#    findBestParams_RBM(X_after_PCA, y)
+    findBestParams_LDA(X_after_PCA, y)
+    findBestParams_RegLog(X_after_PCA, y)
+    findBestParams_KNN(X_after_PCA, y)
+    findBestParams_RandomForest(X_after_PCA, y)
+    findBestParams_SVM(X_after_PCA, y)
+    findBestParams_RBM(X_after_PCA, y)
 
 #    knnClassif(X_raw, y)
 #    svmClassif(X_raw, y)

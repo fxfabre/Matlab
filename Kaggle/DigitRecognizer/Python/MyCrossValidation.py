@@ -13,7 +13,7 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import BernoulliRBM
 
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA, FastICA
 from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
@@ -28,20 +28,75 @@ import xgboost as xgb
 
 def findBestParams_PCA(X, y, pcaValues, fileName, classifier, parameters):
     values = set( y )
+    fileName = "PCA_" + fileName
 
     for variance in pcaValues:
         pca = PCA( variance )
         X_after_PCA = pca.fit_transform( X )
 
         if len( values ) == 2:
-            print( "Cross validation, variance " + str(variance))
+            print( "PCA Cross validation, variance " + str(variance))
             _findBestParams(X_after_PCA, y, fileName + '_' + variance, classifier, parameters)
             return
 
         for i in set(y):
-            print( "Cross validation, class {0}, variance {1}".format(i, variance))
+            print( "PCA Cross validation, class {0}, variance {1}".format(i, variance))
             y_binaryClassif = [ int(x==i) for x in y ]
             _findBestParams( X_after_PCA, y_binaryClassif, fileName + '_' + str(i) + '_' + variance, classifier, parameters )
+
+def findBestParams_ICA(X, y, icaValues, fileName, classifier, parameters):
+    values = set( y )
+    fileName = "ICA_" + fileName
+
+    for n_params in icaValues:
+        ica = FastICA( n_params )
+        X_after_ICA = ica.fit_transform( X )
+
+        if len( values ) == 2:
+            print( fileName + " Cross validation, N_params " + str(n_params))
+            _findBestParams(X_after_ICA, y, fileName + '_' + n_params, classifier, parameters)
+            return
+
+        for i in set(y):
+            print( fileName + " Cross validation, class {0}, N_params {1}".format(i, n_params))
+            y_binaryClassif = [ int(x==i) for x in y ]
+            _findBestParams( X_after_ICA, y_binaryClassif, fileName + '_' + str(i) + '_' + n_params, classifier, parameters )
+
+def findBestParams_kernelPCA(X, y, pcaValues, fileName, classifier, parameters):
+    values = set( y )
+    fileName = "kernelPCA_" + fileName
+
+    for n_params in pcaValues:
+        pca = PCA( n_params )
+        X_after_PCA = pca.fit_transform( X )
+
+        if len( values ) == 2:
+            print( fileName + " Cross validation, n_params " + str(n_params))
+            _findBestParams(X_after_PCA, y, fileName + '_' + n_params, classifier, parameters)
+            return
+
+        for i in set(y):
+            print( fileName + " Cross validation, class {0}, n_params {1}".format(i, n_params))
+            y_binaryClassif = [ int(x==i) for x in y ]
+            _findBestParams( X_after_PCA, y_binaryClassif, fileName + '_' + str(i) + '_' + n_params, classifier, parameters )
+
+def findBestParams_projectedGrad(X, y, n_components, fileName, classifier, parameters):
+    values = set( y )
+    fileName = "projectedGrad_" + fileName
+
+    for n_params in n_components:
+        pca = PCA( n_params )
+        X_after_PCA = pca.fit_transform( X )
+
+        if len( values ) == 2:
+            print( fileName + " Cross validation, n_params " + str(n_params))
+            _findBestParams(X_after_PCA, y, fileName + '_' + n_params, classifier, parameters)
+            return
+
+        for i in set(y):
+            print( fileName + " Cross validation, class {0}, n_params {1}".format(i, n_params))
+            y_binaryClassif = [ int(x==i) for x in y ]
+            _findBestParams( X_after_PCA, y_binaryClassif, fileName + '_' + str(i) + '_' + n_params, classifier, parameters )
 
 
 def findBestParams(X, y, fileName, classifier, parameters):
