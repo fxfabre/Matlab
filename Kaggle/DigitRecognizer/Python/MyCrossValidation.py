@@ -42,7 +42,25 @@ def findBestParams_PCA(X, y, pcaValues, fileName, classifier, parameters):
         for i in set(y):
             print( "PCA Cross validation, class {0}, variance {1}".format(i, variance))
             y_binaryClassif = [ int(x==i) for x in y ]
-            _findBestParams( X_after_PCA, y_binaryClassif, fileName + '_' + str(i) + '_' + variance, classifier, parameters )
+            _findBestParams( X_after_PCA, y_binaryClassif, "{0}_{1}_{2}".format(fileName, i, variance), classifier, parameters )
+
+def findBestParams_RBM(X, y, n_components, fileName, classifier, parameters):
+    values = set( y )
+    fileName = "RBM_" + fileName
+
+    for n_hiddenUnit in n_components:
+        rbm = BernoulliRBM( n_components=n_hiddenUnit)
+        X_RBM = rbm.fit_transform( X, y )
+
+        if len( values ) == 2:
+            print( fileName + " Cross validation, variance " + str(n_hiddenUnit))
+            _findBestParams(X_RBM, y, fileName + '_' + n_hiddenUnit, classifier, parameters)
+            return
+
+        for i in set(y):
+            print( fileName + " Cross validation, class {0}, variance {1}".format(i, n_hiddenUnit))
+            y_binaryClassif = [ int(x==i) for x in y ]
+            _findBestParams( X_RBM, y_binaryClassif, "{0}_{1}_{2}".format(fileName, i, n_hiddenUnit), classifier, parameters )
 
 def findBestParams_ICA(X, y, icaValues, fileName, classifier, parameters):
     values = set( y )
@@ -97,7 +115,6 @@ def findBestParams_projectedGrad(X, y, n_components, fileName, classifier, param
             print( fileName + " Cross validation, class {0}, n_params {1}".format(i, n_params))
             y_binaryClassif = [ int(x==i) for x in y ]
             _findBestParams( X_after_PCA, y_binaryClassif, fileName + '_' + str(i) + '_' + n_params, classifier, parameters )
-
 
 def findBestParams(X, y, fileName, classifier, parameters):
     values = set( y )
@@ -209,15 +226,5 @@ def findBestParams_SVM(X, y):
         'kernel'       : ['rbf', 'sigmoid']
     }]
     findBestParams_PCA(X, y, PCA_VARIANCES, 'Result_SVM', svm, parameters)
-    return
-
-def findBestParams_RBM(X, y):
-    rbm = BernoulliRBM()
-    parameters = {
-        'n_components' : [50, 200, 500, 1000],
-        'learning_rate': [0.1], # [0.001, 0.01, 0.1],
-        'n_iter'       : ['liblinear']
-    }
-    findBestParams_PCA(X, y, PCA_VARIANCES, 'Result_BernoulliRBM', rbm, parameters)
     return
 

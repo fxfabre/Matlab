@@ -22,7 +22,7 @@ from sklearn.metrics import accuracy_score
 
 from sklearn.linear_model import LassoCV
 
-import matplotlib
+import matplotlib as plt
 from matplotlib import pyplot
 
 ## A regarder
@@ -40,7 +40,6 @@ from matplotlib import pyplot
 ##########################
 
 
-# ElasticNetCV
 ##########################
 # Input & output data,
 ##########################
@@ -57,8 +56,13 @@ def readTrainingSet():
     M = data.shape[0]               # Number of pictures
     N = data.shape[1]               # 785 = 28 * 28 pixels + 1
     y = data['label']               # Number written in the picture
-    X = data.iloc[1:NB_SAMPLES, :]  # features
-    return M, N-1, X.values.astype(np.float64), y[0:NB_SAMPLES-1].values.astype(np.float64)
+    X = data.iloc[0:NB_SAMPLES, 1:]  # features
+
+    # Normalize [0, 1]
+    X /= 255.0
+    X = X.values.astype(np.float64)
+    y = y[0:NB_SAMPLES].values
+    return M, N-1, X, y
 
 def readTestSet():
     data = pandas.read_csv(TEST_FILE,delimiter=',')
@@ -66,50 +70,29 @@ def readTestSet():
     N = data.shape[1]   # 784 = 28 * 28 pixels
     return M, N, data
 
-def findBestParams_KNN_2(X, y):
-    knn = KNeighborsClassifier()
-    parameters = {
-        'n_neighbors'  : [3], # list(range(1,3,2)),
-        'weights'      : ['uniform', 'distance'],
-        'algorithm'    : ['kd_tree'], # ['ball_tree', 'kd_tree'],
-        'leaf_size'    : [100], # [15, 30, 50, 100],
-        'metric'       : ['minkowski'],
-        'p'            : [1, 2]
-    }
-
-    for variance in PCA_VARIANCES:
-        pca = PCA(variance)
-        X_afterPca = pca.fit_transform( X )
-
-        nComponents = str(pca.n_components_)
-        eigenValues = pca.explained_variance_ratio_
-        explainedVariance = sum(eigenValues)
-        print( "%d components => %d variance".format(nComponents, explainedVariance) )
-
-        findBestParams(X_afterPca, y, 'Result_KNN', knn, parameters)
-
-    return
-
 
 ##########################
 def main():
     # ==== READ DATA ====
     (m_raw, n_raw, X_raw, y) = readTrainingSet()
+    print( X_raw.shape )
+    print( y.shape )
+
 #    (m_test, n_test, X_test) = readTestSet()
 #    assert(n_raw == n_test)
 
     # === Pre processing ===
-    scaler = preprocessing.StandardScaler().fit( X_raw )
-    X_scaled = scaler.transform( X_raw )
+#    scaler = preprocessing.StandardScaler().fit( X_raw )
+#    X_scaled = scaler.transform( X_raw )
     # mean(X_scaled), std(X_scaled) = 0, 1
 
     # X_scaled not invertible => remove columns
-    pca, X_after_PCA = Filters.pca100pourcent( X_scaled )
+#    pca, X_after_PCA = Filters.pca100pourcent( X_raw )
 
     # === Feature selection : recherche dépendances linéaires.
 
     # === Feature selection : Z-Score
-#    X_zscore, zScores = Filters.compute_Z_score(X_scaled, y)
+#    X_zscore, zScores = Filters.compute_Z_score(X_raw, y)
 
 
     # === Feature selection : Lasso
@@ -120,13 +103,19 @@ def main():
 #    error = accuracy_score(y, y_hat, normalize=True)
 #    print( "Erreur avec LassoCV : " + str(error) )
 
+    # Correlation matrix
+    correlation = X_raw.T.dot( X_raw ) / n_raw
+    fig = plt.figure()
+    plt.matshow( correlation )
+    plt.show()
+
+
     # ==== Cross validation & estimation ====
-    findBestParams_LDA(X_after_PCA, y)
-    findBestParams_RegLog(X_after_PCA, y)
-    findBestParams_KNN(X_after_PCA, y)
-    findBestParams_RandomForest(X_after_PCA, y)
-    findBestParams_SVM(X_after_PCA, y)
-    findBestParams_RBM(X_after_PCA, y)
+#    findBestParams_LDA(X_after_PCA, y)
+#    findBestParams_RegLog(X_after_PCA, y)
+#    findBestParams_KNN(X_after_PCA, y)
+#    findBestParams_RandomForest(X_after_PCA, y)
+#    findBestParams_SVM(X_after_PCA, y)
 
 #    knnClassif(X_raw, y)
 #    svmClassif(X_raw, y)
