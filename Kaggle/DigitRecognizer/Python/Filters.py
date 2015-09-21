@@ -47,14 +47,14 @@ def compute_Z_score(X, y):
 
 def pca100pourcent(X):
     """ Apply PCA on X and keep only columns with information
-    ie : eigenvalue > 1e-5
+    ie : eigenvalue > 1e-3
     """
     pca = PCA(784)
     pca.fit( X )
-    eigenVal = [ x for x in pca.explained_variance_ if abs(x) > 1e-5 ]
+    eigenVal = [ x for x in pca.explained_variance_ if abs(x) > 1e-3 ]
     print("We can keep {0} components without loosing information".format(len(eigenVal)) )
 
-    # Keep same information in dataset, remove useless parameters (parameters with variance < 1e-5)
+    # Keep same information in dataset, remove useless parameters (parameters with variance < 1e-3)
     N_features = len(eigenVal)
     pca = PCA( N_features )
     X_after_PCA = pca.fit_transform( X )

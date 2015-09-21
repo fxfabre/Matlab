@@ -161,7 +161,7 @@ def findBestParams_LDA(X, y):
     {
         'solver'        : ['lsqr', 'eigen'],
         'n_components'  : PCA_VARIANCES,
-        'shrinkage'     : [1] # list(np.arange(0.125, 1.1, 0.125)) + [None, 'auto']
+        'shrinkage'     : list(np.arange(0.125, 1.1, 0.125)) + [None, 'auto']
     }]
     findBestParams(X, y, 'LDA', LDA(), parameters)
     return
@@ -192,8 +192,8 @@ def findBestParams_KNN(X, y):
     parameters = {
         'n_neighbors'  : [7, 11, 15, 19],
         'weights'      : ['uniform', 'distance'],
-        'algorithm'    : ['kd_tree'], # 'ball_tree',
-        'leaf_size'    : [100], # [15, 30, 50, 100],
+        'algorithm'    : ['kd_tree', 'ball_tree'],
+        'leaf_size'    : [15, 30, 50, 100],
         'metric'       : ['minkowski'],
         'p'            : [1, 2, np.inf]
     }
@@ -203,8 +203,8 @@ def findBestParams_KNN(X, y):
 def findBestParams_RandomForest(X, y):
     rf = RandomForestClassifier()
     parameters = {
-        'n_estimators'  : [5, 10], # [5,10,20,50,75,100],
-        'max_leaf_nodes': [100], #list(range(100,500,50))
+        'n_estimators'  : [5,10,20,50,75,100],
+        'max_leaf_nodes': [100, 200, 300, 400, 500]
     }
     findBestParams_PCA(X, y, PCA_VARIANCES, 'Result_RandomForest', rf, parameters)
     return
@@ -219,7 +219,7 @@ def findBestParams_SVM(X, y):
         'C'            : SVM_C,
         'kernel'       : ['poly'],
         'degree'       : [1, 2, 3, 4],
-        'gamma'        : [1] # [0.001, 0.01, 0.1, 0.5, 1]
+        'gamma'        : [0.001, 0.01, 0.1, 0.5, 1]
     },
     {
         'C'            : SVM_C,

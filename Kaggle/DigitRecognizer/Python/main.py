@@ -22,7 +22,6 @@ from sklearn.metrics import accuracy_score
 
 from sklearn.linear_model import LassoCV
 
-import matplotlib as plt
 from matplotlib import pyplot
 
 ## A regarder
@@ -82,12 +81,12 @@ def main():
 #    assert(n_raw == n_test)
 
     # === Pre processing ===
-#    scaler = preprocessing.StandardScaler().fit( X_raw )
-#    X_scaled = scaler.transform( X_raw )
-    # mean(X_scaled), std(X_scaled) = 0, 1
+    # X_raw not invertible => remove columns
+    pca, X_after_PCA = Filters.pca100pourcent( X_raw )
 
-    # X_scaled not invertible => remove columns
-#    pca, X_after_PCA = Filters.pca100pourcent( X_raw )
+    scaler = preprocessing.StandardScaler().fit( X_after_PCA )
+    X_scaled = scaler.transform( X_after_PCA )
+    # mean(X_scaled), std(X_scaled) = 0, 1
 
     # === Feature selection : recherche dépendances linéaires.
 
@@ -104,18 +103,17 @@ def main():
 #    print( "Erreur avec LassoCV : " + str(error) )
 
     # Correlation matrix
-    correlation = X_raw.T.dot( X_raw ) / n_raw
-    fig = plt.figure()
-    plt.matshow( correlation )
-    plt.show()
+#    correlation = X_scaled.T.dot( X_scaled ) / X_scaled.shape[0]
+#    pyplot.matshow(correlation)
+#    pyplot.show()
 
 
     # ==== Cross validation & estimation ====
-#    findBestParams_LDA(X_after_PCA, y)
-#    findBestParams_RegLog(X_after_PCA, y)
-#    findBestParams_KNN(X_after_PCA, y)
-#    findBestParams_RandomForest(X_after_PCA, y)
-#    findBestParams_SVM(X_after_PCA, y)
+    findBestParams_LDA(X_scaled, y)
+    findBestParams_RegLog(X_scaled, y)
+    findBestParams_KNN(X_scaled, y)
+    findBestParams_RandomForest(X_scaled, y)
+    findBestParams_SVM(X_scaled, y)
 
 #    knnClassif(X_raw, y)
 #    svmClassif(X_raw, y)
