@@ -6,6 +6,7 @@ import numpy as np
 import scipy
 import time
 import sys
+import os
 from datetime import datetime
 
 from Common import *
@@ -72,6 +73,11 @@ def readTestSet():
 
 ##########################
 def main():
+    # ==== Archive old results ====
+    if len( os.listdir('Results') ) > 0:
+        os.rename('Results', time.strftime('%Y%m%d_%H%M%S') + '_Results')
+        os.mkdir('Results')
+
     # ==== READ DATA ====
     (m_raw, n_raw, X_raw, y) = readTrainingSet()
     print( X_raw.shape )

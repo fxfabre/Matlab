@@ -38,7 +38,7 @@ def classifyData(classifier, X_train, y, X_test, classifierName, variance=1):
 
     classifier.fit(X_train, y)
     y_hat_train = classifier.predict(X_train)
-    errorTrain = computeError(y, y_hat_train)
+    errorTrain = accuracy_score(y, y_hat_train)
     print( 'Train error {0} : {1}'.format(classifierName, str(errorTrain)) )
 
     y_hat = classifier.predict( X_test )
