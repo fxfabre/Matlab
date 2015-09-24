@@ -3,6 +3,10 @@
 
 import sys
 
+from Common import *
+from Constants_test import *
+# from Constants import *
+
 from sklearn.lda import LDA
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
@@ -15,25 +19,33 @@ from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
 
-import xgboost as xgb
 
-from Common import *
-from Constants_test import *
-# from Constants import *
 
+###
+#   FastICA did not converge. You might want to increase the number of iterations.
+###s
 
 ##########################
 # Tools
 ##########################
 
 def findBestParams_all(X, y, fileName, classifier, parameters):
+    print( "Cross validating {0}, pre-processing = PCA".format(fileName))
     findBestParams_PCA(X, y, PCA_VARIANCES, fileName, classifier, parameters)
+
+    print( "Cross validating {0}, pre-processing = RBM".format(fileName))
     findBestParams_RBM(X, y, RBM_N_COMPONENTS, RBM_LEARNING_RATE, fileName, classifier, parameters)
+
+    print( "Cross validating {0}, pre-processing = ICA".format(fileName))
     findBestParams_ICA(X, y, ICA_N_COMPONENTS, fileName, classifier, parameters)
+
+    print( "Cross validating {0}, pre-processing = kernel PCA".format(fileName))
     findBestParams_kernelPCA(X, y, PCA_VARIANCES, fileName, classifier, parameters)
+
+    print( "Cross validating {0}, pre-processing = Projected grad NMF".format(fileName))
     findBestParams_projectedGrad(X, y, GRAD_NMF_N_COMPONENTS, fileName, classifier, parameters)
 
-def findBestParams_None(X, y, pcaValues, fileName, classifier, parameters):
+def findBestParams_None(X, y, fileName, classifier, parameters):
     values = set( y )
 
     with open('Results/' + fileName + '.log', 'w', 1) as outFile:
@@ -102,13 +114,14 @@ def findBestParams_kernelPCA(X, y, pcaValues, fileName, classifier, parameters):
 def findBestParams_projectedGrad(X, y, n_components, fileName, classifier, parameters):
     values = set( y )
     fileName = "projectedGrad_" + fileName
+    X_positive = X - X.min(axis=0) # add to each column its min
 
     with open('Results/' + fileName + '.log', 'w', 1) as outFile:     # 0 for unbuffered file
         sys.stdout = outFile
 
         for n_params in n_components:
             gradNMF = ProjectedGradientNMF( n_params )
-            X_gracNMF = gradNMF.fit_transform( X, y )
+            X_gracNMF = gradNMF.fit_transform( X_positive, y )
             name = '_'.join([fileName, str(n_params)])
             findBestParams( X_gracNMF, y, values, name, classifier, parameters )
         sys.stdout = sys.__stdout__

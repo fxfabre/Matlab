@@ -22,15 +22,10 @@ REGLOG_C            = [1]
 SVM_C               = [1]
 
 
-LDA_PARAMS = [{
+LDA_PARAMS = {
     'solver'        : ['svd'],
     'n_components'  : PCA_VARIANCES
-},
-{
-    'solver'        : ['lsqr', 'eigen'],
-    'n_components'  : PCA_VARIANCES,
-    'shrinkage'     : [1]
-}]
+}
 
 
 REGLOG_PARAM = [{
