@@ -33,6 +33,15 @@ def findBestParams_all(X, y, fileName, classifier, parameters):
     findBestParams_kernelPCA(X, y, PCA_VARIANCES, fileName, classifier, parameters)
     findBestParams_projectedGrad(X, y, GRAD_NMF_N_COMPONENTS, fileName, classifier, parameters)
 
+def findBestParams_None(X, y, pcaValues, fileName, classifier, parameters):
+    values = set( y )
+
+    with open('Results/' + fileName + '.log', 'w', 1) as outFile:
+        sys.stdout = outFile
+
+        findBestParams( X, y, values, fileName, classifier, parameters )
+        sys.stdout = sys.__stdout__
+
 def findBestParams_PCA(X, y, pcaValues, fileName, classifier, parameters):
     values = set( y )
     fileName = "PCA_" + fileName
@@ -134,7 +143,7 @@ def _findBestParams(X, y, fileName, classifier, parameters):
 ##########################
 def findBestParams_LDA(X, y):
     ## Cross validation
-    findBestParams(X, y, set(y), 'LDA', LDA(), LDA_PARAMS)
+    findBestParams_None(X, y, 'LDA', LDA(), LDA_PARAMS)
     return
 
 def findBestParams_RegLog(X, y):
