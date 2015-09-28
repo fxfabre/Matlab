@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-
 import numpy as np
 
 #   Variance 0.7  => n components : 26
@@ -14,24 +13,19 @@ import numpy as np
 #   Variance 0.99 => n components : 327
 
 
-PCA_VARIANCES       = [0.80, 0.85, 0.90, 0.93]
-RBM_N_COMPONENTS    = [20, 30, 40, 60, 100]
+PCA_VARIANCES       = 0.80
+RBM_N_COMPONENTS    = [20, 25, 30, 35, 40, 50, 60, 70, 100, 150]
 RBM_LEARNING_RATE   = [0.001, 0.01, 0.1, 1]
-ICA_N_COMPONENTS    = [20, 30, 40, 60, 100]
-GRAD_NMF_N_COMPONENTS = [20, 30, 40, 60, 100]
-REGLOG_C            = [0.1, 0.5, 1.0, 10, 100]
-SVM_C               = [0.1, 0.5, 1.0, 10, 100]
+ICA_N_COMPONENTS    = [20, 25, 30, 35, 40, 50, 60, 70, 100, 150]
+GRAD_NMF_N_COMPONENTS = [20, 25, 30, 35, 40, 50, 60, 70, 100, 150]
+REGLOG_C            = [0.1, 0.25, 0.5, 0.75, 1.0, 3, 10, 100]
+SVM_C               = [0.1, 0.25, 0.5, 0.75, 1.0, 3, 10, 100]
 
 
-LDA_PARAMS = [{
-    'solver'        : ['svd'],
-    'n_components'  : PCA_VARIANCES
-},
-{
-    'solver'        : ['lsqr', 'eigen'],
-    'n_components'  : PCA_VARIANCES,
-    'shrinkage'     : list(np.arange(0.125, 1.1, 0.125)) + [None, 'auto']
-}]
+LDA_PARAMS = {
+    'solver'    : 'lsqr',
+    'shrinkage' : 'auto'
+}
 
 
 REGLOG_PARAM = [{
@@ -71,18 +65,18 @@ RBM_PARAM = [{
 
 
 KNN_PARAM = {
-    'n_neighbors'  : [7, 11, 15, 19],
-    'weights'      : ['uniform', 'distance'],
-    'algorithm'    : ['kd_tree'],
-    'leaf_size'    : [15, 30, 50, 100],
-    'metric'       : ['minkowski'],
-    'p'            : [1, 2, np.inf]
+    'n_neighbors'  : 15,
+    'weights'      : 'uniform',
+    'algorithm'    : 'kd_tree',
+    'leaf_size'    : 30,
+    'metric'       : 'minkowski',
+    'p'            : 1
 }
 
 
 RANDOM_FOREST_PARAM = {
-    'n_estimators'  : [5,10,20,50,75,100],
-    'max_leaf_nodes': [100, 200, 300, 400, 500]
+    'n_estimator'   : '100',
+    'max_leaf_node' : '200'
 }
 
 
@@ -94,7 +88,7 @@ SVM_PARAM = [{
     'C'            : SVM_C,
     'kernel'       : ['poly'],
     'degree'       : [1, 2, 3, 4],
-    'gamma'        : [0.001, 0.01, 0.1, 1]
+    'gamma'        : [0.001, 0.01, 0.1, 0.5, 1]
 },
 {
     'C'            : SVM_C,

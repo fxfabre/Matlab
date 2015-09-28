@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from Common import *
+from Constants_best import *
 
 import pandas     # for read_csv function
 import numpy as np
@@ -47,33 +48,17 @@ def classifyData(classifier, X_train, y, X_test, classifierName, variance=1):
     return y_hat
 
 def knnClassif(X, y, X_test):
-    parameters = {
-        'n_neighbors'  : 15,
-        'weights'      : 'uniform',
-        'algorithm'    : 'kd_tree',
-        'leaf_size'    : 30,
-        'metric'       : 'minkowski',
-        'p'            : 1
-    }
-    knn = KNeighborsClassifier(**parameters)
+    knn = KNeighborsClassifier(**KNN_PARAM)
     y_hat = classifyData(knn, X, y, X_test, "KNN", 0.8)
     return y_hat
 
 def ldaClassif(X, y, X_test):
-    parameters = {
-        'solver'    : 'lsqr',
-        'shrinkage' : 'auto'
-    }
-    lda = LDA(**parameters)
+    lda = LDA(**LDA_PARAMS)
     y_hat = classifyData(lda, X, y, X_test, "LDA", 0.8)
     return y_hat
 
 def RandomForestClassif(X, y, X_test):
-    parameters = {
-        'n_estimator'   : '100',
-        'max_leaf_node' : '200'
-    }
-    rf = RandomForestClassifier(**parameters)
+    rf = RandomForestClassifier(**RANDOM_FOREST_PARAM)
     y_hat = classifyData(rf, X, y, X_test, "RandomForest", 0.8)
     return y_hat
 
@@ -119,4 +104,4 @@ def XgradientBoost(X, y, X_test):
     y_hat = model.predict( X_test )
 
 #    ypred = bst.predict(dtest)
-
+    return

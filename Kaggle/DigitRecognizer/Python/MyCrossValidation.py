@@ -58,7 +58,7 @@ def findBestParams_PCA(X, y, pcaValues, fileName, classifier, parameters):
     values = set( y )
     fileName = "PCA_" + fileName
 
-    with open('Results/' + fileName + '.log', 'w', 1) as outFile:     # 0 for unbuffered file
+    with open('Results/' + fileName + '.log', 'a') as outFile:
         sys.stdout = outFile
 
         for variance in pcaValues:
@@ -72,7 +72,7 @@ def findBestParams_RBM(X, y, n_components, learningRates, fileName, classifier, 
     values = set( y )
     fileName = "RBM_" + fileName
 
-    with open('Results/' + fileName + '.log', 'w', 1) as outFile:     # 0 for unbuffered file
+    with open('Results/' + fileName + '.log', 'a') as outFile:
         sys.stdout = outFile
 
         for n_hiddenUnit in n_components:
@@ -87,7 +87,7 @@ def findBestParams_ICA(X, y, icaValues, fileName, classifier, parameters):
     values = set( y )
     fileName = "ICA_" + fileName
 
-    with open('Results/' + fileName + '.log', 'w', 1) as outFile:     # 0 for unbuffered file
+    with open('Results/' + fileName + '.log', 'a', 1) as outFile:
         sys.stdout = outFile
 
         for n_params in icaValues:
@@ -101,7 +101,7 @@ def findBestParams_kernelPCA(X, y, pcaValues, fileName, classifier, parameters):
     values = set( y )
     fileName = "kernelPCA_" + fileName
 
-    with open('Results/' + fileName + '.log', 'w', 1) as outFile:     # 0 for unbuffered file
+    with open('Results/' + fileName + '.log', 'a') as outFile:
         sys.stdout = outFile
 
         for n_params in pcaValues:
@@ -116,7 +116,7 @@ def findBestParams_projectedGrad(X, y, n_components, fileName, classifier, param
     fileName = "projectedGrad_" + fileName
     X_positive = X - X.min(axis=0) # add to each column its min
 
-    with open('Results/' + fileName + '.log', 'w', 1) as outFile:     # 0 for unbuffered file
+    with open('Results/' + fileName + '.log', 'a') as outFile:
         sys.stdout = outFile
 
         for n_params in n_components:

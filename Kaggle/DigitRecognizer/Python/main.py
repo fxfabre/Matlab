@@ -1,28 +1,20 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import pandas     # for read_csv function
-import numpy as np
-import scipy
-import time
-import sys
-import os
-from datetime import datetime
 
 from Common import *
 from MyCrossValidation import *
 from MyClassification import *
 import Filters
 
+import pandas     # for read_csv function
+import numpy as np
+import time
+import os
+
 from sklearn.decomposition import PCA
-from sklearn.svm import SVC
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
-from sklearn.metrics import accuracy_score
-
 from sklearn.linear_model import LassoCV
-
 from matplotlib import pyplot
 
 ## A regarder
@@ -31,13 +23,6 @@ from matplotlib import pyplot
 # Naive bayes ?
 # LassoCV
 # ElasticNetCV
-
-# accuaracy_score, parametre normalize ?
-
-
-##########################
-# X-Validation, common models V2
-##########################
 
 
 ##########################
@@ -94,8 +79,6 @@ def main():
     X_scaled = scaler.transform( X_after_PCA )
     # mean(X_scaled), std(X_scaled) = 0, 1
 
-    # === Feature selection : recherche dépendances linéaires.
-
     # === Feature selection : Z-Score
 #    X_zscore, zScores = Filters.compute_Z_score(X_raw, y)
 
@@ -121,7 +104,7 @@ def main():
     findBestParams_RandomForest(X_scaled, y)
     findBestParams_SVM(X_scaled, y)
 
-#    knnClassif(X_raw, y)
+    y_hat_knn = knnClassif(X_raw, y)
 #    svmClassif(X_raw, y)
 
 #    XgradientBoost(X_raw, y, X_test)

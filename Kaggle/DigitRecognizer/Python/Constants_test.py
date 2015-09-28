@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-
 #   Variance 0.7  => n components : 26
 #   Variance 0.75 => n components : 33
 #   Variance 0.8  => n components : 43
