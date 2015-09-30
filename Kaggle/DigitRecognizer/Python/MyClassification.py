@@ -19,7 +19,7 @@ from sklearn.svm import SVC
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.neural_network import BernoulliRBM
 
-import xgboost as xgb
+#import xgboost as xgb
 
 
 #############################

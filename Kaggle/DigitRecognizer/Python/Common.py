@@ -22,13 +22,13 @@ from sklearn.pipeline import Pipeline
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import cross_val_score
 
-import xgboost as xgb
+#import xgboost as xgb
 
 
 TRAIN_FILE = "../data/train.csv"
 TEST_FILE  = "../data/test.csv"
 NB_SAMPLES = 2000 # 42000
-NB_THREADS = 4
+NB_THREADS = 2
 VERBOSE_LEVEL = 3
 NB_CV = 4
 
