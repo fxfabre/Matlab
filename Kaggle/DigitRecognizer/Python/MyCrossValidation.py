@@ -31,7 +31,7 @@ from sklearn.cross_validation import cross_val_score
 
 def findBestParams_all(X, y, fileName, classifier, parameters):
     print( "Cross validating {0}, pre-processing = PCA".format(fileName))
-    findBestParams_PCA(X, y, PCA_VARIANCES, fileName, classifier, parameters)
+#    findBestParams_PCA(X, y, PCA_VARIANCES, fileName, classifier, parameters)
 
     print( "Cross validating {0}, pre-processing = RBM".format(fileName))
     findBestParams_RBM(X, y, RBM_N_COMPONENTS, RBM_LEARNING_RATE, fileName, classifier, parameters)
@@ -143,9 +143,12 @@ def _findBestParams(X, y, fileName, classifier, parameters):
     estimator.fit(X, y)
 
     # Save best params and each CV score to a file
-    with open('Results/ ' + fileName + '.bestParams', 'a') as outFile:
+    best_score = estimator.best_params_.mean
+    print("Best score : " + best_score)
+    exit(0)
+    with open('Results/' + fileName + '.bestParams', 'a') as outFile:
         outFile.write( str(estimator.best_params_) )
-    with open('Results/ ' + fileName + '.gridScores', 'a') as outFile:
+    with open('Results/' + fileName + '.gridScores', 'a') as outFile:
         outFile.write( str(estimator.grid_scores_) )
 
     return

@@ -12,13 +12,13 @@
 #   Variance 0.99 => n components : 327
 
 
-PCA_VARIANCES       = [0.80]
-RBM_N_COMPONENTS    = [20]
-RBM_LEARNING_RATE   = [0.1]
-ICA_N_COMPONENTS    = [20]
-GRAD_NMF_N_COMPONENTS = [20]
-REGLOG_C            = [1]
-SVM_C               = [1]
+PCA_VARIANCES       = [0.70, 0.90]
+RBM_N_COMPONENTS    = [20, 50, 100]
+RBM_LEARNING_RATE   = [0.01, 0.1, 1]
+ICA_N_COMPONENTS    = [20, 50, 100]
+GRAD_NMF_N_COMPONENTS = [20, 50, 100]
+REGLOG_C            = [0.5]
+SVM_C               = [0.5]
 
 
 LDA_PARAMS = {
@@ -28,7 +28,7 @@ LDA_PARAMS = {
 
 
 REGLOG_PARAM = [{
-    'penalty'   : ['l1'],
+    'penalty'   : ['l2'],
     'C'         : REGLOG_C,
     'solver'    : ['liblinear']
 }]

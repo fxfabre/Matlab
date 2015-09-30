@@ -98,13 +98,13 @@ def main():
 
 
     # ==== Cross validation & estimation ====
-    findBestParams_LDA(X_scaled, y)
+#    findBestParams_LDA(X_scaled, y)
     findBestParams_RegLog(X_scaled, y)
-    findBestParams_KNN(X_scaled, y)
-    findBestParams_RandomForest(X_scaled, y)
-    findBestParams_SVM(X_scaled, y)
+#    findBestParams_KNN(X_scaled, y)
+#    findBestParams_RandomForest(X_scaled, y)
+#    findBestParams_SVM(X_scaled, y)
 
-    y_hat_knn = knnClassif(X_raw, y)
+#    y_hat_knn = knnClassif(X_raw, y)
 #    svmClassif(X_raw, y)
 
 #    XgradientBoost(X_raw, y, X_test)
