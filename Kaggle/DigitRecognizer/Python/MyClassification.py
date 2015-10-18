@@ -24,7 +24,7 @@ import xgboost as xgb
 
 #############################
 
-def classifyData(classifier, X_train, y, X_test, classifierName, variance=1):
+def classifyData(classifier, X_train, y, X_test, classifierName, variance=0):
     """
     :param classifier: classifier.fit and classifier.predict must be defined
     :param X_train:    training set
@@ -33,7 +33,8 @@ def classifyData(classifier, X_train, y, X_test, classifierName, variance=1):
     :return: predictions for X_test + % of good classification on train set
     """
     pca = None
-    if variance < 1:
+    if variance != 0:
+        classifierName += '_pca_' + str(variance)
         pca, X_train = pcaReduction(X_train, variance)
         X_test = pca.transform( X_test )
 
@@ -43,7 +44,8 @@ def classifyData(classifier, X_train, y, X_test, classifierName, variance=1):
     print( 'Train error {0} : {1}'.format(classifierName, str(errorTrain)) )
 
     y_hat = classifier.predict( X_test )
-    np.savetxt( 'Prediction/' + classifierName + '.txt', y_hat )
+    lineNumber = list( range(1,len(y_hat)+1) )
+    np.savetxt( 'Prediction/' + classifierName + '.txt', X=[lineNumber, y_hat], delimiter=',' )
 
     return y_hat
 
@@ -62,13 +64,13 @@ def RandomForestClassif(X, y, X_test):
     y_hat = classifyData(rf, X, y, X_test, "RandomForest", 0.8)
     return y_hat
 
-def svmClassif(X_train, y_train):
-    pca = PCA(n_components=10)
-    Xt = pca.fit_transform(X_train)
-
-    svm = SVC(kernel='linear')
-    errorTrain = classifyData(svm, Xt, y_train, "SVM")
+def svmClassif(X_train, y_train, X_test):
+    svm = SVC( **SVM_PARAM )
+    errorTrain = classifyData(svm, X_train, y_train, X_test, "SVM", 0.8)
     print( 'error SVM : ' + str(errorTrain) )
+
+    y_hat = svm.predict(X_test)
+
     return
 
 ##########################
