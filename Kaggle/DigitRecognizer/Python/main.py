@@ -47,6 +47,7 @@ def readTrainingSet():
     X /= 255.0
     X = X.values.astype(np.float64)
     y = y[0:NB_SAMPLES].values
+
     return M, N-1, X, y
 
 def readTestSet():
@@ -68,15 +69,17 @@ def main():
     print( X_raw.shape )
     print( y.shape )
 
-#    (m_test, n_test, X_test) = readTestSet()
-#    assert(n_raw == n_test)
+    (m_test, n_test, X_test) = readTestSet()
+    assert(n_raw == n_test)
 
     # === Pre processing ===
     # X_raw not invertible => remove columns
     pca, X_after_PCA = Filters.pca100pourcent( X_raw )
+    X_test = pca.transform( X_test )
 
     scaler = preprocessing.StandardScaler().fit( X_after_PCA )
     X_scaled = scaler.transform( X_after_PCA )
+    X_test_scaled = scaler.transform( X_test )
     # mean(X_scaled), std(X_scaled) = 0, 1
 
     # === Feature selection : Z-Score
@@ -99,13 +102,13 @@ def main():
 
     # ==== Cross validation & estimation ====
 #    findBestParams_LDA(X_scaled, y)
-    findBestParams_RegLog(X_scaled, y)
+#    findBestParams_RegLog(X_scaled, y)
 #    findBestParams_KNN(X_scaled, y)
-#    findBestParams_RandomForest(X_scaled, y)
+    findBestParams_RandomForest(X_scaled, y)
 #    findBestParams_SVM(X_scaled, y)
 
 #    y_hat_knn = knnClassif(X_raw, y)
-#    svmClassif(X_raw, y)
+#    y_svm = svmClassif(X_raw, y, X_test_scaled)
 
 #    XgradientBoost(X_raw, y, X_test)
 

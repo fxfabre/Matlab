@@ -19,7 +19,6 @@ RBM_LEARNING_RATE   = [0.001, 0.01, 0.1, 1]
 ICA_N_COMPONENTS    = [20, 25, 30, 35, 40, 50, 60, 70, 100, 150]
 GRAD_NMF_N_COMPONENTS = [20, 25, 30, 35, 40, 50, 60, 70, 100, 150]
 REGLOG_C            = [0.1, 0.25, 0.5, 0.75, 1.0, 3, 10, 100]
-SVM_C               = [0.1, 0.25, 0.5, 0.75, 1.0, 3, 10, 100]
 
 
 LDA_PARAMS = {
@@ -80,22 +79,12 @@ RANDOM_FOREST_PARAM = {
 }
 
 
-SVM_PARAM = [{
-    'C'            : SVM_C,
-    'kernel'       : ['linear']
-},
-{
-    'C'            : SVM_C,
-    'kernel'       : ['poly'],
-    'degree'       : [1, 2, 3, 4],
-    'gamma'        : [0.001, 0.01, 0.1, 0.5, 1]
-},
-{
-    'C'            : SVM_C,
-    'kernel'       : ['rbf', 'sigmoid']
-}]
-
-
+SVM_PARAM = {
+    'C'            : 1.0,
+    'kernel'       : 'poly',
+    'degree'       : 2,
+    'gamma'        : 0.1
+}
 
 
 
