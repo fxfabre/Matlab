@@ -75,7 +75,8 @@ def getInputFiles( folderFrom, ifs, unlesses ):
 
 #        print("\nAprès filter unless  : \n{0}".format('\n'.join(map(lambda x: os.path.basename(x), files))) )
 
-    return InputFiles( files )
+    filesPath = map(lambda f: os.path.join(folderFrom, f), files)
+    return InputFiles( list(filesPath) )
 
 
 

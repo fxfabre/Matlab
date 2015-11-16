@@ -7,7 +7,6 @@ import LogManager
 import PluginsManager
 from DbConnexion import DbConnexion
 from Launcher import Launcher
-import os
 
 
 def main():

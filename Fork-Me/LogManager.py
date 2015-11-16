@@ -12,7 +12,6 @@ def getLoggerName(fileName):
     serverName = os.getenv("COMPUTERNAME", 'COMPUTERNAME')
     return '_'.join([fileName, dateString, serverName, str(os.getpid())])
 
-
 def getLoggerParams(logFolder, fileName):
     baseName = getLoggerName(fileName)
     # TODO : convert logFolder from relative path to absolute path
@@ -24,17 +23,15 @@ def getLoggerParams(logFolder, fileName):
     }
     return params, baseName
 
-
 def initializeLogger_old(logFolder, fileName):
     loggerParams = getLoggerParams(logFolder, fileName)
     logging.basicConfig(**loggerParams)
     return logging.getLogger(fileName)
 
-
 def initializeLogger(logFolder, fileName):
     loggerName  = getLoggerName(fileName)
     loggerPath  = os.path.join(logFolder, loggerName + '.xml')
-    logFormat   = '%(asctime)s %(levelname)s - %(message)s' # - %(name)s -
+    logFormat   = '%(asctime)s - %(levelname)6s - %(message)s' # - %(name)s -
     datefmt     = "%Y%m%d_%H%M%S"
 
     logger = logging.getLogger(loggerName)
@@ -46,7 +43,7 @@ def initializeLogger(logFolder, fileName):
 
     # create console handler with a higher log level
     ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
+    ch.setLevel(logging.DEBUG)
 
     # create formatter and add it to the handlers
     formatter = logging.Formatter(logFormat, datefmt=datefmt)

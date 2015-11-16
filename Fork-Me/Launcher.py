@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-
 import InputFiles
 import InputFile
 import LogManager
@@ -13,6 +12,7 @@ import time
 import random
 
 import logging
+
 
 class Launcher:
 
@@ -78,6 +78,7 @@ class Launcher:
             'inputFile' : None,
             'time'      : self.time,
             'categorie' : self.categorie,
+            'infra'     : self.infra,
             'maxStarts' : self.maxStarts
         }
 
@@ -106,11 +107,14 @@ class Launcher:
 
         logger.info("Process {0} for {1} started".format(os.getpid(), inputFile.fileName))
 
+        inputFile.UpdateXml(params['time'], params['categorie'], params['infra'])
+
         while self.__canRunInputFile(inputFile, params):
             logger.debug("Processing {0} by {1}".format(inputFile.fileName, os.getpid()))
             inputFile.nbStarts += 1
 
             semaphore.acquire( block=True, timeout=None)
+            self.logger.debug("{0} dans le semaphore".format(os.getpid()))
 
             try:
                 self.__runChild(inputFile, params, logger)
@@ -118,15 +122,16 @@ class Launcher:
                 logger.error("Exception in processing of " + inputFile.fileName)
                 logger.exception(str(e))
                 inputFile.status = Status.ERROR
-
-            semaphore.release()
+            finally:
+                self.logger.debug("{0} libere le semaphore".format(os.getpid()))
+                semaphore.release()
         logger.info("{0} ended".format(inputFile.fileName) )
 
     def __runChild(self, inputFile, params, logger):
         inputFile.status = Status.RUNNING
         logger.debug("Running file {0}".format(inputFile.fileName))
 
-        time.sleep( random.uniform(2, 10) )
+        time.sleep( random.uniform(2, 4) )
 
         inputFile.status = Status.SUCCESS
         logger.debug("Process for {0} finished".format(inputFile.fileName))
@@ -185,4 +190,3 @@ class Launcher:
     def __removeJsonErrorFile(self):
         if os.path.exists( self.jsonErrorFile ):
             os.remove( self.jsonErrorFile )
-
