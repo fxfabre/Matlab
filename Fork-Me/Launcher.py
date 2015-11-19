@@ -4,12 +4,12 @@
 import InputFiles
 import InputFile
 import LogManager
+import EventFunctions
 from Status import Status
 
 import multiprocessing as mp
 import os
 import time
-import random
 
 import logging
 
@@ -42,24 +42,28 @@ class Launcher:
 
     def setDefaultEventHandler(self):
         self.eventHandlers = {
-            'ignore'    : [],
-            'compile'   : [],
-            'to_start'  : [],
-            'started'   : [],
-            'finish'    : [],
-            'finished'  : [],
-            'end'       : [lambda : self.logger.info("Process main end !")],
-            'xmlFilter' : [],
-            'runCommand': []
+            'ignore'    : [EventFunctions.ignore    ],
+            'compile'   : [EventFunctions.compile   ],
+            'begin'     : [EventFunctions.begin     ],
+            'start'     : [EventFunctions.start     ],
+            'finishing' : [EventFunctions.finishing ],
+            'finish'    : [EventFunctions.finish    ],
+            'end'       : [EventFunctions.end       ],
+            'xmlFilter' : [EventFunctions.xmlFilter ],
+            'runCommand': [EventFunctions.runCommand]
         }
 
     def runEventhandler(self, eventName, *args, **kwargs):
         self.logger.debug("Running eventHandler {0}".format(eventName) )
+        codeRetour = 0
         if eventName not in self.eventHandlers:
-            return
+            return codeRetour
         for function in self.eventHandlers[eventName]:
             self.logger.debug("EventHandler {0} : run function {1}".format(eventName, function.__name__))
-            function(*args, **kwargs)
+            retour = function(*args, **kwargs)
+            if retour is not None:
+                codeRetour = max(codeRetour, retour)
+        return codeRetour
 
     def addEventHandler(self, eventName, function):
         self.logger.debug("Adding function {0} to eventHandler {1}".format(function.__name__, eventName))
@@ -68,22 +72,27 @@ class Launcher:
         self.eventHandlers[eventName].append( function )
 
     def start(self):
-        self.runEventhandler('to_start')
+        self.runEventhandler('begin', self)
         self.logger.info("Starting Fork-Me")
 
         self.logger.debug("Creating semaphore with {0} process max".format(self.processes))
         semaphore = mp.Semaphore( self.processes )
-        childParam = {
-            'semaphore' : semaphore,
-            'inputFile' : None,
-            'time'      : self.time,
-            'categorie' : self.categorie,
-            'infra'     : self.infra,
-            'maxStarts' : self.maxStarts
-        }
 
         for inputFile in self.inputFiles:
-            childParam['inputFile'] = inputFile
+            childParam = {
+                'semaphore' : semaphore,
+                'inputFile' : inputFile,
+                'time'      : self.time,
+                'categorie' : self.categorie,
+                'infra'     : self.infra,
+                'maxStarts' : self.maxStarts,
+                'logFolder' : self.parameters['log'],
+                'jsonErrorFile' : self.jsonErrorFile,
+                'binary'    : self.binary,
+                'tiger'     : self.parameters['tiger'],
+                'to'        : self.parameters['to'],
+                'is_a'      : self.parameters['is_a']
+            }
             process = mp.Process(target=self.__startChildProcessing,
                                  name=inputFile.fileName,
                                  kwargs=childParam,
@@ -94,7 +103,8 @@ class Launcher:
 
         self.logger.info("Waiting for all childs to end")
         self.inputFiles.waitAllProcess()
-        self.runEventhandler('end')
+        self.runEventhandler('end', self)
+
 
     ########################
     # Processing functions # Child processes
@@ -105,18 +115,16 @@ class Launcher:
         logger = LogManager.initializeLogger(self.parameters['log'], inputFile.fileName)
         inputFile.logger = logger
 
-        logger.info("Process {0} for {1} started".format(os.getpid(), inputFile.fileName))
-
         inputFile.UpdateXml(params['time'], params['categorie'], params['infra'])
 
         while self.__canRunInputFile(inputFile, params):
-            logger.debug("Processing {0} by {1}".format(inputFile.fileName, os.getpid()))
-            inputFile.nbStarts += 1
+            self.runEventhandler('start', self, inputFile)
 
             semaphore.acquire( block=True, timeout=None)
-            self.logger.debug("{0} dans le semaphore".format(os.getpid()))
+            logger.debug("{0} dans le semaphore".format(os.getpid()))
 
             try:
+                inputFile.status = Status.RUNNING
                 self.__runChild(inputFile, params, logger)
             except Exception as e:
                 logger.error("Exception in processing of " + inputFile.fileName)
@@ -125,16 +133,43 @@ class Launcher:
             finally:
                 self.logger.debug("{0} libere le semaphore".format(os.getpid()))
                 semaphore.release()
-        logger.info("{0} ended".format(inputFile.fileName) )
+
+            self.runEventhandler('finish', self, inputFile)
 
     def __runChild(self, inputFile, params, logger):
-        inputFile.status = Status.RUNNING
-        logger.debug("Running file {0}".format(inputFile.fileName))
+        cmdLineParams = {
+            'logFile'   : os.path.join(params['logFolder'], self.binary + "_" + inputFile.fileName + '.log'),
+            'xmlPath'   : inputFile.filePath,
+            'to'    : os.path.join(params['to'], inputFile.fileName),
+            'binary': params['binary'],
+            'infra' : params['infra'],
+            'tiger' : params['tiger'],
+            'is_a'  : params['is_a'],
+        }
 
-        time.sleep( random.uniform(2, 4) )
+        jsonErrorFile = params['jsonErrorFile']
 
-        inputFile.status = Status.SUCCESS
-        logger.debug("Process for {0} finished".format(inputFile.fileName))
+        listErrors = []
+
+        codeRetour = self.runEventhandler('runCommand', self, inputFile, **cmdLineParams)
+        if codeRetour > 0:
+            listErrors.append("{0} returned {1}".format(params['binary'], codeRetour))
+
+        if os.path.exists(jsonErrorFile):
+            if not inputFile.isProcessingSuccess(jsonErrorFile):
+                listErrors.append("Error found in file {0}".format(jsonErrorFile))
+        else:
+            listErrors.append("Error file {0} must exist".format(jsonErrorFile))
+
+        self.runEventhandler('finishing', self, inputFile, listErrors)
+
+        if len(listErrors) > 0:
+            inputFile.logger.info("File {0} ends with errors : \n{1}".format(inputFile.fileName,'\n'.join(listErrors)))
+            inputFile.status = Status.ERROR
+        else:
+            inputFile.logger.info("File {0} ends success".format(inputFile.fileName))
+            inputFile.status = Status.SUCCESS
+
         return
 
     def __canRunInputFile(self, inputFile, params):
@@ -148,9 +183,9 @@ class Launcher:
         if inputFile.status == Status.RUNNING:
             return False
 
-        self.runEventhandler('xmlFilter', inputFile)
+        self.runEventhandler('xmlFilter', self, inputFile)
         if inputFile.status == Status.IGNORE:
-            self.runEventhandler('ignore', inputFile)
+            self.runEventhandler('ignore', self, inputFile)
             return False
 
         if inputFile.nbStarts >= params['maxStarts']:

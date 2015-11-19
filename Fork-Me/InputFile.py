@@ -6,6 +6,7 @@ from Private import XPATH
 
 import os
 import time
+import random
 from lxml import etree
 
 LOG_MESSAGE = {
@@ -83,6 +84,12 @@ class InputFile:
             return True
         return False
 
+    def isProcessingSuccess(self, jsonErrorFilePath):
+        # TODO : Compléter la fonction
+        status = random.random()
+        if status > 0.5:
+            return True
+        return False
 
     #########################
     # XML Getters & setters #
@@ -173,16 +180,12 @@ class InputFile:
 
         if infra and len(infra) > 0:
             for xmlElt in self.xmlTree.xpath( XPATH['servercalculifcname'] ):
-                self.logMessage('debug', 'servercalculifcname')
                 xmlElt.text = "calcul" + infra
             for xmlElt in self.xmlTree.xpath( XPATH['servercalculname'] ):
-                self.logMessage('debug', 'servercalculname')
                 xmlElt.text = "calcul" + infra
             for xmlElt in self.xmlTree.xpath( XPATH['serverpositionname'] ):
-                self.logMessage('debug', 'serverpositionname')
                 xmlElt.text = "position" + infra
             for xmlElt in self.xmlTree.xpath( XPATH['serverrepartitionname'] ):
-                self.logMessage('debug', 'serverrepartitionname')
                 xmlElt.text = "repartition" + infra
 
         self.xmlTree.write( self.filePath )

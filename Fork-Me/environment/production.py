@@ -3,9 +3,8 @@
 
 
 def apply(launcher):
-    launcher.addEventHandler('to_start', printToto)
-    print("Module prod imported")
+    launcher.addEventHandler('to_start', lambda loc_launcher: printToto(loc_launcher))
 
-def printToto():
-    print("Message from module production")
+def printToto(launcher):
+    launcher.info("Launcher 'to_start' from module production")
 

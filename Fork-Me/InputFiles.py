@@ -13,7 +13,8 @@ class InputFiles:
 #        self.inputFiles = Array(InputFile, list(inputFiles), lock=True)
         self.inputFiles = list( inputFiles )
 
-    def orderBy(self, predicate):
+    def orderBy(self):
+        predicate = lambda inputFile: inputFile.Niceness
         self.files.sort(key=predicate)
         return self.files
 
@@ -21,6 +22,10 @@ class InputFiles:
         for inputFile in self.inputFiles:
             if inputFile.process:
                 inputFile.process.join()
+
+    def countStatus(self, status):
+        filtered = filter( lambda x: x.status == status, self.inputFiles)
+        return len( list(filtered) )
 
     ########################
     # Overloaded functions #
