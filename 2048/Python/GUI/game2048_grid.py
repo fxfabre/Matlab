@@ -64,6 +64,10 @@ class Game2048Grid (GG.GameGrid):
         "height": 400,  # pixels
     } # end of CONFIG
 
+    def __init__(self, *args, **kwargs):
+        GG.GameGrid.__init__(self, *args, **kwargs)
+        self.isGameOver = False
+
     def animate_rectangle (self, item_id, value):
         """
             GAME OVER animation sequence;
@@ -71,17 +75,14 @@ class Game2048Grid (GG.GameGrid):
         """
         self.tag_raise(item_id, TK.ALL)
         self.itemconfigure(item_id, stipple=value)
-    # end def
 
     def animate_text_game_over (self, item_id, value):
         """
             GAME OVER animation sequence;
             'Game Over' text animation;
         """
-
         self.tag_raise(item_id, TK.ALL)
         self.itemconfigure(item_id, fill=value, state=TK.NORMAL)
-    # end def
 
     def animate_text_try_again (self, item_id, value):
         """
@@ -103,8 +104,6 @@ class Game2048Grid (GG.GameGrid):
                 self.winfo_reqheight() // 2 + 65,
                 window=_btn,
             )
-        # end if
-    # end def
 
     def fuse_tiles (self, into_tile, void_tile):
         """
@@ -112,7 +111,6 @@ class Game2048Grid (GG.GameGrid):
             void_tile;
             return True on success, False otherwise;
         """
-
         # shortcuts
         _into, _void = into_tile, void_tile
 
@@ -134,16 +132,15 @@ class Game2048Grid (GG.GameGrid):
 
             # op success
             return True
-        # end if - matching tiles
         
         # op failure
         return False
-    # end def
 
     def game_over (self, tk_event=None, *args, **kw):
         """
             shows up game over screen and offers to try again;
         """
+        self.isGameOver = True
 
         # disconnect keypress events
         self.unbind_all("<Key>")
@@ -206,7 +203,6 @@ class Game2048Grid (GG.GameGrid):
             sequence=("#c9bdb4", "#d0c5be", "#d7cdc8", "#ded5d2",
             "#e5dddc", "#ece5e6", "#f3edf0", "#ffffff"),
         )
-    # end def
 
     def get_available_box (self):
         """
@@ -223,21 +219,15 @@ class Game2048Grid (GG.GameGrid):
                 _column = random.randrange(self.columns)
                 if not _at(_row, _column):
                     break
-                # end if
-            # end while
             return (_row, _column)
-        # end if - no more room
-    # end def
 
     def init_widget (self, **kw):
         """
             widget's main inits;
         """
-
         # member inits
         self.__score_cvar = TK.IntVar()
         self.__score_callback = None
-    # end def
 
     def move_tile (self, tile, row, column):
         """
@@ -251,8 +241,6 @@ class Game2048Grid (GG.GameGrid):
             
             # make some animation and updates
             tile.animate_move_to(row, column)
-        # end if
-    # end def
 
     def move_tiles_down (self) -> bool:
         """
@@ -316,7 +304,6 @@ class Game2048Grid (GG.GameGrid):
         # pop-up next tile or game over
         self.next_tile(acted=_acted)
         return _acted
-    # end def
 
     def move_tiles_left (self) -> bool:
         """
@@ -345,11 +332,7 @@ class Game2048Grid (GG.GameGrid):
                         if self.fuse_tiles(_tile1, _tile2):
                             # we did something
                             _acted = True
-                        # end if
                         if _tile2: break
-                    # end for - next tile
-                # end if - tile
-            # end for - fusions
             
             # empty location inits
             _empty = None
@@ -372,14 +355,10 @@ class Game2048Grid (GG.GameGrid):
 
                     # we did something
                     _acted = True
-                # end if
-            # end for - scrollings
-        # end for - row
 
         # pop-up next tile or game over
         self.next_tile(acted=_acted)
         return _acted
-    # end def
 
     def move_tiles_right (self) -> bool:
         """
@@ -444,7 +423,6 @@ class Game2048Grid (GG.GameGrid):
         # pop-up next tile or game over
         self.next_tile(acted=_acted)
         return _acted
-    # end def
 
     def move_tiles_up (self) -> bool:
         """
@@ -510,7 +488,6 @@ class Game2048Grid (GG.GameGrid):
         # pop-up next tile or game over
         self.next_tile(acted=_acted)
         return _acted
-    # end def
 
     def next_tile (self, tk_event=None, *args, **kw):
         """
@@ -521,14 +498,10 @@ class Game2048Grid (GG.GameGrid):
         if kw.get("acted"):
             # pop up a new tile
             self.pop_tile()
-        # end if
 
         # nothing to play any more?
         if self.no_more_hints():
-            # game over!
             self.game_over()
-        # end if
-    # end def
 
     def no_more_hints (self):
         """
@@ -567,7 +540,6 @@ class Game2048Grid (GG.GameGrid):
 
         # the show must go on!
         return False
-    # end def
 
     def pop_tile (self, tk_event=None, *args, **kw):
         """
@@ -599,27 +571,16 @@ class Game2048Grid (GG.GameGrid):
             self.matrix.add(_tile, *_tile.row_column, raise_error=True)
 
         # end if - room in grid
-    # end def
 
     def set_score_callback (self, callback, raise_error=False):
         r"""
             sets up a callable function/method to use when updating
             score values;
         """
-
         if callable(callback):
-
             self.__score_callback = callback
-
         elif raise_error:
-
-            raise TypeError(
-
-                "callback parameter *MUST* be a callable object."
-            )
-
-        # end if
-    # end def
+            raise TypeError("callback parameter *MUST* be a callable object.")
 
     def tiles_match (self, tile1, tile2):
         r"""
@@ -627,25 +588,15 @@ class Game2048Grid (GG.GameGrid):
         """
 
         return tile1 and tile2 and tile1.value == tile2.value
-    # end def
 
     def update_score (self, value, mode="add"):
         r"""
             updates score along @value and @mode;
         """
-
         # object is callable?
-
         if callable(self.__score_callback):
-
-            # update score through callback
-
             self.__score_callback(value, mode)
 
-        # end if
-
-    # end def
-# end class Game2048Grid
 
 # subcomponent class def
 class Game2048GridTile (GG.GridTile):
@@ -658,7 +609,6 @@ class Game2048GridTile (GG.GridTile):
     # color pairs are (background_color, foreground_color)
 
     COLORS = {
-
         2: ("#eee4da", "#776e65"),
         4: ("#ede0c8", "#776e65"),
         8: ("#f2b179", "#f9f6f2"),
@@ -675,13 +625,10 @@ class Game2048GridTile (GG.GridTile):
         16384: ("yellow", "chocolate"),
         32768: ("orange", "yellow"),
         65536: ("red", "white"),
-
-    } # end of COLORS
+    }
 
     # GridTile fonts along internal value
-
     FONTS = {
-
         2: "sans 32 bold",
         4: "sans 32 bold",
         8: "sans 32 bold",
@@ -698,10 +645,7 @@ class Game2048GridTile (GG.GridTile):
         16384: "sans 16 bold",
         32768: "sans 16 bold",
         65536: "sans 16 bold",
-
-    } # end of FONTS
-
-
+    }
 
     def animate_move_to (self, row, column):
         r"""
