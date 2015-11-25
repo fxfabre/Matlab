@@ -26,10 +26,7 @@
     If not, see http://www.gnu.org/licenses/
 """
 
-# lib imports
-
 from . import game_score as GS
-
 
 
 class Game2048Score (GS.GameScore):
@@ -39,12 +36,7 @@ class Game2048Score (GS.GameScore):
 
     # default global config values
     # this overrides superclass member
-
     CONFIG = {
-
         "padding": "10px",
+    }
 
-    } # end of CONFIG
-
-
-# end class Game2048Score

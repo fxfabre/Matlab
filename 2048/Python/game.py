@@ -6,12 +6,11 @@ import random
 import tkinter as TK
 import tkinter.messagebox as MB
 from tkinter import ttk
-from time import sleep
 
 import GUI.game2048_score as GS
 import GUI.game2048_grid as GG
 
-from AI.ai_random import *
+from AI.ai_random import ai_random
 
 class Game2048(TK.Tk):
 
@@ -34,6 +33,8 @@ class Game2048(TK.Tk):
 
         # Init AI
         self._ai = ai_random()
+        self._scoreHistory = []
+        self._gridHistory = []
 
     def center_window(self, tk_event=None, *args, **kw):
         """
@@ -89,7 +90,7 @@ class Game2048(TK.Tk):
         self.score.pack(side=TK.LEFT)
         self.hiscore.pack(side=TK.LEFT)
 
-        # quit button
+        # play button
         ttk.Button(
             self, text="Play !", command=self.play_random,
         ).pack(side=TK.RIGHT, padx=_pad, pady=_pad)
@@ -101,23 +102,6 @@ class Game2048(TK.Tk):
 
         # set score callback method
         self.grid.set_score_callback(self.update_score)
-
-    def play_random(self, *args, **kw):
-        self.grid.isGameOver = False
-
-        i = 0
-        nextMove = 'up'
-        while len(nextMove) > 0:
-            i += 1
-            tk_event = TK.Event()
-            nextMove = self._ai.move_next(self.grid)     # 'left', 'right', 'up' or 'down'
-            tk_event.keysym = nextMove
-
-            sleep(0.1)
-            self.slot_keypressed(tk_event)
-
-            self.grid.update()
-        print("Game over in {0} iterations, stop game".format(i))
 
     def new_game(self, *args, **kw):
         """
@@ -146,6 +130,8 @@ class Game2048(TK.Tk):
         """
             quit app dialog;
         """
+        self.quit()
+        return
 
         # ask before actually quitting
         if MB.askokcancel("Question", "Quit game?", parent=self):
@@ -202,6 +188,26 @@ class Game2048(TK.Tk):
 
         # update high score
         self.hiscore.high_score(self.score.get_score())
+
+    def play_random(self, *args, **kw):
+        self.grid.isGameOver = False
+
+        i = 0
+        nextMove = 'up'
+        while len(nextMove) > 0:
+            i += 1
+
+            self._scoreHistory.append( self.score.get_score() )
+            self._gridHistory.append( self.grid.toIntMatrix() )
+
+            tk_event = TK.Event()
+            nextMove = self._ai.move_next(self.grid, self._gridHistory, self._scoreHistory)     # 'left', 'right', 'up' or 'down'
+            tk_event.keysym = nextMove
+
+            self.slot_keypressed(tk_event)
+
+            self.grid.update()
+        print("Game over in {0} iterations, stop game".format(i))
 
 
 # launching the game

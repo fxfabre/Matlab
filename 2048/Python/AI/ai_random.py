@@ -4,6 +4,9 @@
 from random import randrange
 import sys
 
+from time import sleep
+
+
 class ai_random:
 
     def __init__(self):
@@ -11,18 +14,16 @@ class ai_random:
         file = open("LogPython.log", 'w')
         self.logFile = file
 
-    def move_next(self, grid):
+    def move_next(self, grid, gridHistory, scoreHistory):
         if grid.isGameOver:
             return ''
         n = randrange(len(self._available_moves))
-        print("Move {0}".format(n))
         direction = self._available_moves[n]
+
+        sleep(0.01)
         return direction
 
     def __del__(self):
         self.logFile.close()
         self.logFile = sys.stdout
-
-
-
 
