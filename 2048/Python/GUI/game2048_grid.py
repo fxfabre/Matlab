@@ -26,7 +26,8 @@
     If not, see http://www.gnu.org/licenses/
 """
 
-# lib imports
+
+import copy
 import random
 import tkinter as TK
 from tkinter import ttk
@@ -60,13 +61,23 @@ class Game2048Grid (GG.GameGrid):
     CONFIG = {
         "background": BGCOLOR,
         "highlightthickness": 0,
-        "width": 400,   # pixels
+        "width" : 400,   # pixels
         "height": 400,  # pixels
-    } # end of CONFIG
+    }
 
-    def __init__(self, *args, **kwargs):
-        GG.GameGrid.__init__(self, *args, **kwargs)
+    def __init__(self, master, **kwargs):
+        """
+
+        """
+        GG.GameGrid.__init__(self, master, **kwargs)
         self.isGameOver = False
+
+    def clone(self, score_updater):
+        clone = Game2048Grid( self.owner, rows=self.rows, columns=self.columns )
+        clone.__matrix = copy.copy( self.matrix )
+        clone.init_widget()
+        clone.set_score_callback( score_updater )
+        return clone
 
     def animate_rectangle (self, item_id, value):
         """
@@ -225,8 +236,10 @@ class Game2048Grid (GG.GameGrid):
         """
             widget's main inits;
         """
-        # member inits
+        # Var to save score
         self.__score_cvar = TK.IntVar()
+
+        # Callback function to update score
         self.__score_callback = None
 
     def move_tile (self, tile, row, column):
@@ -540,6 +553,7 @@ class Game2048Grid (GG.GameGrid):
             score values;
         """
         if callable(callback):
+            print("Setting callback {0}".format(callback.__name__))
             self.__score_callback = callback
         elif raise_error:
             raise TypeError("callback parameter *MUST* be a callable object.")
@@ -555,8 +569,10 @@ class Game2048Grid (GG.GameGrid):
             updates score along @value and @mode;
         """
         # object is callable?
+        print("Updating score with value {0}".format(value))
         if callable(self.__score_callback):
             self.__score_callback(value, mode)
+            print("Updating done")
 
 
 class Game2048GridTile (GG.GridTile):

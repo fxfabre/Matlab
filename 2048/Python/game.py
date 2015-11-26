@@ -7,10 +7,8 @@ import tkinter as TK
 import tkinter.messagebox as MB
 from tkinter import ttk
 
-import GUI.game2048_score as GS
-import GUI.game2048_grid as GG
+from GUI.gameBoard import gameBoard
 
-from AI.ai_random import ai_random
 
 class Game2048(TK.Tk):
 
@@ -30,11 +28,6 @@ class Game2048(TK.Tk):
 
         # prevent from accidental displaying
         self.withdraw()
-
-        # Init AI
-        self._ai = ai_random()
-        self._scoreHistory = []
-        self._gridHistory = []
 
     def center_window(self, tk_event=None, *args, **kw):
         """
@@ -74,34 +67,23 @@ class Game2048(TK.Tk):
         # inits
         _pad = self.PADDING
 
-        # get 2048's grid
-        self.grid = GG.Game2048Grid(self, **kw)
-
-        # hint subcomponent
-        self.hint = ttk.Label(self, text="Hint: use keyboard arrows to move tiles.")
-
-        # score subcomponents
-        self.score = GS.Game2048Score(self, **kw)
-        self.hiscore = GS.Game2048Score(self, label="Highest:", **kw)
+        # get 2048's gameBoard = grid, score & highscore
+        self.gameBoard = gameBoard(self, **kw)
 
         # layout inits
-        self.grid.pack(side=TK.TOP, padx=_pad, pady=_pad)
-        self.hint.pack(side=TK.TOP)
-        self.score.pack(side=TK.LEFT)
-        self.hiscore.pack(side=TK.LEFT)
+        self.gameBoard.grid.pack(side=TK.TOP, padx=_pad, pady=_pad)
+        self.gameBoard.score.pack(side=TK.LEFT)
+        self.gameBoard.hiscore.pack(side=TK.LEFT)
 
         # play button
         ttk.Button(
-            self, text="Play !", command=self.play_random,
+            self, text="Play !", command=self.gameBoard.play_ia,
         ).pack(side=TK.RIGHT, padx=_pad, pady=_pad)
 
         # new game button
         ttk.Button(
             self, text="New Game", command=self.new_game,
         ).pack(side=TK.RIGHT)
-
-        # set score callback method
-        self.grid.set_score_callback(self.update_score)
 
     def new_game(self, *args, **kw):
         """
@@ -111,20 +93,17 @@ class Game2048(TK.Tk):
         # no events now
         self.unbind_all("<Key>")
 
-        # reset score
-        self.score.reset_score()
-
-        # reset grid
-        self.grid.reset_grid()
+        # reset grid and score
+        self.gameBoard.reset()
 
         # make random tiles to appear
         for n in range(self.START_TILES):
             self.after(
-                100 * random.randrange(3, 7), self.grid.pop_tile
+                100 * random.randrange(3, 7), self.gameBoard.grid.pop_tile
             )
 
         # bind events
-        self.bind_all("<Key>", self.slot_keypressed)
+        self.bind_all("<Key>", self.gameBoard.slot_keypressed)
 
     def quit_app (self, **kw):
         """
@@ -151,63 +130,6 @@ class Game2048(TK.Tk):
 
         # enter the loop
         self.mainloop()
-
-    def slot_keypressed (self, tk_event=None, *args, **kw):
-        """
-            keyboard input events manager;
-        """
-
-        # action slot multiplexer
-        _slot = {
-            "left" : self.grid.move_tiles_left,
-            "right": self.grid.move_tiles_right,
-            "up"   : self.grid.move_tiles_up,
-            "down" : self.grid.move_tiles_down,
-            "escape": self.quit_app,
-        }.get(tk_event.keysym.lower())
-
-        # got some redirection?
-        if callable(_slot):
-            _slot()
-            # hints are useless by now
-#            self.hint.pack_forget()
-
-    def update_score (self, value, mode="add"):
-        """
-            updates score along @value and @mode;
-        """
-        # relative mode
-        if str(mode).lower() in ("add", "inc", "+"):
-            # increment score value
-            self.score.add_score(value)
-
-        # absolute mode
-        else:
-            # set new value
-            self.score.set_score(value)
-
-        # update high score
-        self.hiscore.high_score(self.score.get_score())
-
-    def play_random(self, *args, **kw):
-        self.grid.isGameOver = False
-
-        i = 0
-        nextMove = 'up'
-        while len(nextMove) > 0:
-            i += 1
-
-            self._scoreHistory.append( self.score.get_score() )
-            self._gridHistory.append( self.grid.toIntMatrix() )
-
-            tk_event = TK.Event()
-            nextMove = self._ai.move_next(self.grid, self._gridHistory, self._scoreHistory)     # 'left', 'right', 'up' or 'down'
-            tk_event.keysym = nextMove
-
-            self.slot_keypressed(tk_event)
-
-            self.grid.update()
-        print("Game over in {0} iterations, stop game".format(i))
 
 
 # launching the game

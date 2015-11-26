@@ -59,7 +59,7 @@ class GameGrid (TK.Canvas):
     CONFIG = {
         "background": BGCOLOR,
         "highlightthickness": 0,
-        "width": 500,   # pixels
+        "width" : 500,  # pixels
         "height": 500,  # pixels
 
     }
@@ -74,11 +74,11 @@ class GameGrid (TK.Canvas):
         self.configure(**self._only_tk(self.CONFIG))
 
         # public members
-        self.rows = kw.get("rows", self.ROWS)
+        self.rows    = kw.get("rows"   , self.ROWS   )
         self.columns = kw.get("columns", self.COLUMNS)
-        self.thickness = kw.get("thickness", self.THICKNESS)
         self.bgcolor = kw.get("bgcolor", self.BGCOLOR)
         self.fgcolor = kw.get("fgcolor", self.FGCOLOR)
+        self.thickness = kw.get("thickness", self.THICKNESS)
 
         # private member inits
         self.__tk_owner = master
