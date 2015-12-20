@@ -27,11 +27,11 @@
 """
 
 
-import copy
 import random
 import tkinter as TK
 from tkinter import ttk
 from . import game_grid as GG
+
 
 class Game2048Grid (GG.GameGrid):
     """
@@ -71,13 +71,6 @@ class Game2048Grid (GG.GameGrid):
         """
         GG.GameGrid.__init__(self, master, **kwargs)
         self.isGameOver = False
-
-    def clone(self, score_updater):
-        clone = Game2048Grid( self.owner, rows=self.rows, columns=self.columns )
-        clone.__matrix = copy.copy( self.matrix )
-        clone.init_widget()
-        clone.set_score_callback( score_updater )
-        return clone
 
     def animate_rectangle (self, item_id, value):
         """
@@ -280,7 +273,6 @@ class Game2048Grid (GG.GameGrid):
                         if self.fuse_tiles(_tile1, _tile2):
                             # we did something
                             _acted = True
-                        # end if
 
                         if _tile2:
                             break
@@ -553,7 +545,6 @@ class Game2048Grid (GG.GameGrid):
             score values;
         """
         if callable(callback):
-            print("Setting callback {0}".format(callback.__name__))
             self.__score_callback = callback
         elif raise_error:
             raise TypeError("callback parameter *MUST* be a callable object.")
@@ -572,7 +563,6 @@ class Game2048Grid (GG.GameGrid):
         print("Updating score with value {0}".format(value))
         if callable(self.__score_callback):
             self.__score_callback(value, mode)
-            print("Updating done")
 
 
 class Game2048GridTile (GG.GridTile):

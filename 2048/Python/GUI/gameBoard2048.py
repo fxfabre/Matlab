@@ -8,25 +8,24 @@ from AI.ai_random import ai_random
 from AI.ai_bestScoreNextMove import ai_bestScoreNextMove
 
 
-class gameBoard:
+class gameBoard2048:
 
     def __init__(self, game, **kw):
-
         # Game2048 object, UI
-        self.game = game
+        self.game2048 = game
 
         # get 2048's grid
         self.grid = GG.Game2048Grid(game, **kw)
 
         # score subcomponents
         self.score = GS.Game2048Score(game, **kw)
-        self.hiscore = GS.Game2048Score(game, label="Highest:", **kw)
+        self.highscore = GS.Game2048Score(game, label="Highest:", **kw)
 
         # set score callback method
         self.grid.set_score_callback(self.update_score)
 
         # Init AI
-        self._ai = ai_random()
+        self._ai = ai_bestScoreNextMove()
         self._scoreHistory = []
         self._gridHistory = []
 
@@ -41,6 +40,8 @@ class gameBoard:
         """
             updates score along @value and @mode;
         """
+        print("Update score with value {0}".format(value))
+
         # relative mode
         if str(mode).lower() in ("add", "inc", "+"):
             # increment score value
@@ -52,17 +53,29 @@ class gameBoard:
             self.score.set_score(value)
 
         # update high score
-        self.hiscore.high_score(self.score.get_score())
+        self.highscore.high_score(self.score.get_score())
 
     def slot_keypressed(self, tk_event=None, *args, **kw):
         if tk_event:
             self.move_tile(tk_event.keysym)
 
+    def move_tiles_left(self):
+        return self.move_tile('left')
+
+    def move_tiles_right(self):
+        return self.move_tile('right')
+
+    def move_tiles_up(self):
+        return self.move_tile('up')
+
+    def move_tiles_down(self):
+        return self.move_tile('down')
+
     def move_tile(self, direction):
         """
             keyboard input events manager;
         """
-
+        print("Move " + direction)
         # action slot multiplexer
         _slot = {
             "left" : self.grid.move_tiles_left,
@@ -76,7 +89,7 @@ class gameBoard:
             _slot()
 
         # Update user interface
-        self.grid.update()
+#        self.grid.update()
 
     def play_ia(self, *args, **kw):
         self.grid.isGameOver = False
@@ -84,17 +97,42 @@ class gameBoard:
         i = 0
         nextMove = 'up'
         while len(nextMove) > 0:
+            print("Start IA, step " + str(i))
             i += 1
 
+            # Add history (grid and score) data
             self._scoreHistory.append( self.score.get_score() )
             self._gridHistory.append( self.grid.toIntMatrix() )
 
             # Get next move : 'left', 'right', 'up' or 'down'
-            nextMove = self._ai.move_next(self.grid, self._gridHistory, self._scoreHistory)
+            nextMove = self._ai.move_next(self, self._gridHistory, self._scoreHistory)
+            print("Moving to " + str(nextMove))
 
             # Simulate keyboard event
             self.move_tile(nextMove)
+            self.grid.update()
 
-#            if i>3:
+            print( self.grid.toIntMatrix() )
+
+#            if i > 1000:
 #                nextMove = ''
-        print("Game over in {0} iterations, stop game".format(i))
+        print("Game over in {0} iterations, stop game".format(i+1))
+
+    def __str__(self):
+        returnString = ['']
+
+        returnString.append("### Game Board ###")
+
+        # HighScore :
+        returnString.append("# HighScore : {0}".format(self.highscore.get_score()))
+
+        # Score :
+        returnString.append("# Score : {0}".format(self.score.get_score()))
+
+        # Grid :
+        for line in str(self.grid.toIntMatrix()).split('\n'):
+            returnString.append("# {0}".format(line))
+
+        returnString.append('')
+
+        return '\n'.join(returnString)

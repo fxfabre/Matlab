@@ -7,7 +7,7 @@ import tkinter as TK
 import tkinter.messagebox as MB
 from tkinter import ttk
 
-from GUI.gameBoard import gameBoard
+from GUI.gameBoard2048 import gameBoard2048
 
 
 class Game2048(TK.Tk):
@@ -17,7 +17,6 @@ class Game2048(TK.Tk):
 
     # number of tiles to show at startup
     START_TILES = 2
-
 
     def __init__ (self, **kw):
         # super class inits
@@ -68,12 +67,12 @@ class Game2048(TK.Tk):
         _pad = self.PADDING
 
         # get 2048's gameBoard = grid, score & highscore
-        self.gameBoard = gameBoard(self, **kw)
+        self.gameBoard = gameBoard2048(self, **kw)
 
         # layout inits
         self.gameBoard.grid.pack(side=TK.TOP, padx=_pad, pady=_pad)
         self.gameBoard.score.pack(side=TK.LEFT)
-        self.gameBoard.hiscore.pack(side=TK.LEFT)
+        self.gameBoard.highscore.pack(side=TK.LEFT)
 
         # play button
         ttk.Button(

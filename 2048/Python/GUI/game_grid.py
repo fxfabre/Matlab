@@ -61,7 +61,6 @@ class GameGrid (TK.Canvas):
         "highlightthickness": 0,
         "width" : 500,  # pixels
         "height": 500,  # pixels
-
     }
 
     def __init__ (self, master, **kw):
@@ -89,6 +88,22 @@ class GameGrid (TK.Canvas):
         # widget inits
         self.init_widget(**self.CONFIG)
 
+    ####################
+    # My functions
+    ####################
+    def toIntMatrix(self):
+        N = len(self.matrix.matrix)
+        matrix = np.zeros([N, N])
+        for i in range(N):
+            for j in range(N):
+                tile = self.matrix.get_object_at(i,j)
+                if tile:
+                    matrix[i,j] = tile.value
+        return matrix
+
+    #####################
+    # Private functions
+    #####################
     def _only_tk (self, kw):
         r"""
             private method def;
@@ -110,13 +125,9 @@ class GameGrid (TK.Canvas):
                 _dict[_key] = kw.get(_key)
         return _dict
 
-    @property
-    def cell_size (self):
-        r"""
-            returns internal GridCellSize object instance;
-        """
-        return self.__cell_size
-
+    ###################
+    # Clear functions
+    ###################
     def clear_all (self, tk_event=None, *args, **kw):
         r"""
             clears up all critical members;
@@ -143,137 +154,6 @@ class GameGrid (TK.Canvas):
         """
         # clear tiles
         self.tiles.clear()
-
-    @property
-    def columns (self):
-        r"""
-            returns grid's current nb of columns;
-        """
-        return self.__columns
-
-    @columns.setter
-    def columns (self, value):
-        self.__columns = normalize(value)
-
-    @columns.deleter
-    def columns (self):
-        del self.__columns
-
-    def get_coords (self, row, column, centered=False):
-        r"""
-            calculates canvas (x, y) coordinates from grid matrix
-            (row, column) pair;
-        """
-        # get (left, top) coordinates
-        _x, _y = self.cell_size.xy_left_top(row, column)
-
-        # center coords?
-        if centered:
-            _x += self.cell_size.width // 2
-            _y += self.cell_size.height // 2
-        return (_x, _y)
-
-    @property
-    def grid_height (self):
-        r"""
-            returns grid's height;
-        """
-        return self.winfo_reqheight()
-
-    @property
-    def grid_size (self):
-        r"""
-            returns (real_width, real_height) pair;
-        """
-        # must adjust along thickness
-        return (
-            (self.grid_width - self.half_high),
-            (self.grid_height - self.half_high)
-        )
-
-    @property
-    def grid_width (self):
-        r"""
-            returns grid's width;
-        """
-        return self.winfo_reqwidth()
-
-    @property
-    def half_high (self):
-        r"""
-            returns half thickness, high value;
-        """
-        return round(0.1 + self.thickness / 2)
-
-    @property
-    def half_low (self):
-        r"""
-            returns half thickness, low value;
-        """
-        return self.thickness // 2
-
-    def init_widget (self, **kw):
-        r"""
-            widget's main inits;
-        """
-        # put your own code in subclass
-        pass
-
-    def is_full (self):
-        r"""
-            evaluates available room in grid;
-        """
-        return len(self.tiles) >= self.max_tiles
-
-    def is_tile (self, row, column):
-        r"""
-            determines whether canvas item at (row, column) is of
-            tile type or not;
-        """
-        # inits coordinates
-        _x, _y = self.get_coords(row, column, centered=True)
-
-        # get canvas item id
-        _item_id = self.find_overlapping(_x, _y, _x, _y)
-
-        # is a tile?
-        return bool(_item_id in self.tiles)
-
-    @property
-    def matrix (self):
-        r"""
-            returns internal matrix object;
-        """
-        return self.__matrix
-
-    @property
-    def max_tiles (self):
-        r"""
-            returns maximum number of tiles currently admitted;
-        """
-        return self.rows * self.columns
-
-    @property
-    def owner (self):
-        r"""
-            returns ref to private tk_owner;
-        """
-        return self.__tk_owner
-
-    def register_tile (self, tile_id, tile_object, raise_error=False):
-        r"""
-            registers new tile in tiles dict();
-        """
-        # new tile id?
-        if tile_id not in self.tiles:
-            # register tile object
-            self.tiles[tile_id] = tile_object
-        elif raise_error:
-            # should *NOT* override already existing tile
-            raise KeyError(
-                "tile id '{tid}' is already registered."
-                .format(tid=tile_id)
-            )
 
     def remove_tile (self, tile_id):
         r"""
@@ -321,6 +201,152 @@ class GameGrid (TK.Canvas):
                 0, _y, _grid_width, _y,
                 fill=_fg, width=_thickness,
             )
+
+    ###################
+    def get_coords (self, row, column, centered=False):
+        r"""
+            calculates canvas (x, y) coordinates from grid matrix
+            (row, column) pair;
+        """
+        # get (left, top) coordinates
+        _x, _y = self.cell_size.xy_left_top(row, column)
+
+        # center coords?
+        if centered:
+            _x += self.cell_size.width // 2
+            _y += self.cell_size.height // 2
+        return (_x, _y)
+
+    def init_widget (self, **kw):
+        r"""
+            widget's main inits;
+        """
+        # put your own code in subclass
+        pass
+
+    def is_full (self):
+        r"""
+            evaluates available room in grid;
+        """
+        return len(self.tiles) >= self.max_tiles
+
+    def is_tile (self, row, column):
+        r"""
+            determines whether canvas item at (row, column) is of
+            tile type or not;
+        """
+        # inits coordinates
+        _x, _y = self.get_coords(row, column, centered=True)
+
+        # get canvas item id
+        _item_id = self.find_overlapping(_x, _y, _x, _y)
+
+        # is a tile?
+        return bool(_item_id in self.tiles)
+
+    def register_tile (self, tile_id, tile_object, raise_error=False):
+        r"""
+            registers new tile in tiles dict();
+        """
+        # new tile id?
+        if tile_id not in self.tiles:
+            # register tile object
+            self.tiles[tile_id] = tile_object
+        elif raise_error:
+            # should *NOT* override already existing tile
+            raise KeyError(
+                "tile id '{tid}' is already registered."
+                .format(tid=tile_id)
+            )
+
+    ################
+    # Properties
+    ################
+    @property
+    def columns (self):
+        r"""
+            returns grid's current nb of columns;
+        """
+        return self.__columns
+
+    @columns.setter
+    def columns (self, value):
+        self.__columns = normalize(value)
+
+    @columns.deleter
+    def columns (self):
+        del self.__columns
+
+    @property
+    def grid_height (self):
+        r"""
+            returns grid's height;
+        """
+        return self.winfo_reqheight()
+
+    @property
+    def grid_size (self):
+        r"""
+            returns (real_width, real_height) pair;
+        """
+        # must adjust along thickness
+        return (
+            (self.grid_width - self.half_high),
+            (self.grid_height - self.half_high)
+        )
+
+    @property
+    def grid_width (self):
+        r"""
+            returns grid's width;
+        """
+        return self.winfo_reqwidth()
+
+    @property
+    def cell_size (self):
+        r"""
+            returns internal GridCellSize object instance;
+        """
+        return self.__cell_size
+
+    @property
+    def half_high (self):
+        r"""
+            returns half thickness, high value;
+        """
+        return round(0.1 + self.thickness / 2)
+
+    @property
+    def half_low (self):
+        r"""
+            returns half thickness, low value;
+        """
+        return self.thickness // 2
+
+    @property
+    def matrix (self):
+        r"""
+            returns internal matrix object;
+        """
+        return self.__matrix
+
+    @matrix.setter
+    def matrix(self, value):
+        self.__matrix = value
+
+    @property
+    def max_tiles (self):
+        r"""
+            returns maximum number of tiles currently admitted;
+        """
+        return self.rows * self.columns
+
+    @property
+    def owner (self):
+        r"""
+            returns ref to private tk_owner;
+        """
+        return self.__tk_owner
 
     @property
     def rows (self):
@@ -374,16 +400,6 @@ class GameGrid (TK.Canvas):
             returns (x, y) coordinates of canvas' center point;
         """
         return (self.grid_width // 2, self.grid_height // 2)
-
-    def toIntMatrix(self):
-        N = len(self.matrix.matrix)
-        matrix = np.zeros([N, N])
-        for i in range(N):
-            for j in range(N):
-                tile = self.matrix.get_object_at(i,j)
-                if tile:
-                    matrix[i,j] = tile.value
-        return matrix
 
 
 class GridAnimation (TK.Frame):
@@ -670,7 +686,18 @@ class GridMatrix:
         # first time: reset matrix
         self.reset_matrix()
 
-    def add (self, object_, row, column, raise_error=False):
+    def display(self):
+        matrix = np.zeros([self.rows, self.columns])
+
+        for i in range(self.rows):
+            for j in range(self.columns):
+                if self.__matrix[i][j] is None:
+                    matrix[i][j] = 0
+                else:
+                    matrix[i][j] = self.__matrix[i][j].value
+#        print( matrix )
+
+    def add(self, object_, row, column, raise_error=False):
         r"""
             adds an object at (row, column) in matrix;
 
@@ -693,22 +720,7 @@ class GridMatrix:
         # failed
         return False
 
-    @property
-    def columns (self):
-        r"""
-            returns number of columns in matrix;
-        """
-        return self.__columns
-
-    @columns.setter
-    def columns (self, value):
-        self.__columns = normalize(value)
-
-    @columns.deleter
-    def columns (self):
-        del self.__columns
-
-    def duplicate_object (self, from_row_column, to_row_column):
+    def duplicate_object(self, from_row_column, to_row_column):
         r"""
             duplicates the object located at @from_row_column into
             @to_row_column if exists;
@@ -721,7 +733,7 @@ class GridMatrix:
         # add copy to new location
         self.add(_object, *to_row_column, raise_error=True)
 
-    def get_object_at (self, row, column, raise_error=False):
+    def get_object_at(self, row, column, raise_error=False):
         r"""
             returns the object located at (row, column) in the
             matrix or None on failure;
@@ -741,14 +753,7 @@ class GridMatrix:
             )
         return _object
 
-    @property
-    def matrix (self):
-        r"""
-            returns internal matrix object;
-        """
-        return self.__matrix
-
-    def move_object (self, from_row_column, to_row_column):
+    def move_object(self, from_row_column, to_row_column):
         r"""
             moves the object located at @from_row_column to
             @to_row_column if exists;
@@ -764,7 +769,7 @@ class GridMatrix:
         # and then remove it from old location
         self.remove_object_at(*from_row_column)
 
-    def remove_object_at (self, row, column):
+    def remove_object_at(self, row, column):
         r"""
             removes the object located at (row, column) from the
             matrix, if any;
@@ -772,33 +777,17 @@ class GridMatrix:
         # remove object
         self.matrix[row][column] = None
 
-    def reset_matrix (self):
+    def reset_matrix(self):
         r"""
             resets matrix to current rows and columns;
         """
-        # $ 2014-03-25 RS $
         # caution:
         # do *NOT* use [[None]*cols]*rows: *NOT* shallow copies!
         self.__matrix = [
             [None] * self.columns for i in range(self.rows)
         ]
 
-    @property
-    def rows (self):
-        r"""
-            returns number of rows in matrix;
-        """
-        return self.__rows
-
-    @rows.setter
-    def rows (self, value):
-        self.__rows = normalize(value)
-
-    @rows.deleter
-    def rows (self):
-        del self.__rows
-
-    def swap_objects (self, row_column1, row_column2):
+    def swap_objects(self, row_column1, row_column2):
         r"""
             swaps two objects located at @row_column1 and
             @row_column2 if they do exist;
@@ -816,6 +805,63 @@ class GridMatrix:
         # swap locations
         self.add(_object1, *row_column2, raise_error=True)
         self.add(_object2, *row_column1, raise_error=True)
+
+    ################
+    # Properties
+    ################
+    @property
+    def columns (self):
+        r"""
+            returns number of columns in matrix;
+        """
+        return self.__columns
+
+    @columns.setter
+    def columns (self, value):
+        self.__columns = normalize(value)
+
+    @columns.deleter
+    def columns (self):
+        del self.__columns
+
+    @property
+    def matrix (self):
+        r"""
+            returns internal matrix object;
+        """
+        return self.__matrix
+
+    @matrix.setter
+    def matrix(self, matrixToSet):
+        # Copy content
+        for i in range(self.rows):
+            for j in range(self.columns):
+                if matrixToSet[i][j] is None:
+#                    print("{0}, {1} => {2}".format(i, j, 0))
+                    self.__matrix[i][j] = None
+                else:
+#                    print("{0}, {1} => {2}".format(i, j, self.__matrix[i][j].value))
+                    self.__matrix[i][j] = GridTile(
+                        matrixToSet[i][j].owner,
+                        matrixToSet[i][j].value,
+                        matrixToSet[i][j].row,
+                        matrixToSet[i][j].column
+                    )
+
+    @property
+    def rows (self):
+        r"""
+            returns number of rows in matrix;
+        """
+        return self.__rows
+
+    @rows.setter
+    def rows (self, value):
+        self.__rows = normalize(value)
+
+    @rows.deleter
+    def rows (self):
+        del self.__rows
 
 
 class GridTile:

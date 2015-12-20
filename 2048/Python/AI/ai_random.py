@@ -14,7 +14,8 @@ class ai_random:
         file = open("LogPython.log", 'w')
         self.logFile = file
 
-    def move_next(self, grid, gridHistory, scoreHistory):
+    def move_next(self, gameBoard, gridHistory, scoreHistory):
+        grid = gameBoard.grid
         if grid.isGameOver:
             return ''
         n = randrange(len(self._available_moves))
