@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from random import randrange
+import random
 import sys
-
 from time import sleep
 
 
@@ -18,8 +17,8 @@ class ai_random:
         grid = gameBoard.grid
         if grid.isGameOver:
             return ''
-        n = randrange(len(self._available_moves))
-        direction = self._available_moves[n]
+
+        direction = random.choice( self._available_moves )
 
         sleep(0.01)
         return direction

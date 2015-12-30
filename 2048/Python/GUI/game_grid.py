@@ -695,7 +695,6 @@ class GridMatrix:
                     matrix[i][j] = 0
                 else:
                     matrix[i][j] = self.__matrix[i][j].value
-#        print( matrix )
 
     def add(self, object_, row, column, raise_error=False):
         r"""

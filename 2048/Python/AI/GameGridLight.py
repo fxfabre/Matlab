@@ -23,27 +23,29 @@ class gameGridLight:
     ###############
     def moveTo(self, direction=""):
         direction = direction.lower()
-        array_before_move = np.array(self.matrix)
 
         score = 0
+        have_moved = False
         if direction == 'left':
-            score = self.moveLeft()
+            return self.moveLeft()
         elif direction == 'right':
-            score = self.moveRight()
+            return self.moveRight()
         elif direction == 'up':
-            score = self.moveUp()
+            return self.moveUp()
         elif direction == 'down':
-            score = self.moveDown()
+            return self.moveDown()
         else:
-            print("ERROR : Unknown direction : " + direction)
+            raise Exception("Unknown direction : " + direction)
 
-        if self.array2DEquals(array_before_move):
-            return -10 # negative score : don't do this move
-        return score
+        return score, have_moved
+        if have_moved:
+            return score
+        return -10 # Negative score if can't move
 
     def moveLeft(self):
         _at = self.matrix
         score = 0
+        have_moved = False
 
         # Step 1 : fusion of equal tiles
         for _row in range(self.rows):
@@ -57,6 +59,7 @@ class gameGridLight:
                         self.matrix[_row, _column] *= 2
                         self.matrix[_row, _column_next] = 0
                         score +=_at[_row, _column]
+                        have_moved = True
                     break
 
         # Step 2 : Move tiles
@@ -75,11 +78,13 @@ class gameGridLight:
                     self.matrix[_row, _first_empty_column] = _at[_row, _column]
                     _at[_row, _column] = 0
                     _first_empty_column += 1
-        return score
+                    have_moved = True
+        return score, have_moved
 
     def moveRight(self):
         _at = self.matrix
         score = 0
+        have_moved = False
 
         # Step 1 : fusion of equal tiles
         for _row in range(self.rows):
@@ -93,6 +98,7 @@ class gameGridLight:
                         self.matrix[_row, _column] *= 2
                         self.matrix[_row, _column_next] = 0
                         score +=_at[_row, _column]
+                        have_moved = True
                     break
 
         # Step 2 : Move tiles
@@ -111,11 +117,13 @@ class gameGridLight:
                     self.matrix[_row, _first_empty_column] = _at[_row, _column]
                     _at[_row, _column] = 0
                     _first_empty_column -= 1
-        return score
+                    have_moved = True
+        return score, have_moved
 
     def moveUp(self):
         _at = self.matrix
         score = 0
+        have_moved = False
 
         # Step 1 : fusion of equal tiles
         for _column in range(self.columns):
@@ -130,6 +138,7 @@ class gameGridLight:
                         self.matrix[_row, _column] *= 2
                         self.matrix[_row_next, _column] = 0
                         score +=_at[_row, _column]
+                        have_moved = True
                     break
 
         # Step 2 : Move tiles
@@ -148,11 +157,13 @@ class gameGridLight:
                     self.matrix[_first_empty_row, _column] = _at[_row, _column]
                     _at[_row, _column] = 0
                     _first_empty_row += 1
-        return score
+                    have_moved = True
+        return score, have_moved
 
     def moveDown(self):
         _at = self.matrix
         score = 0
+        have_moved = False
 
         # Step 1 : fusion of equal tiles
         for _column in range(self.columns):
@@ -167,6 +178,7 @@ class gameGridLight:
                         self.matrix[_row, _column] *= 2
                         self.matrix[_row_next, _column] = 0
                         score +=_at[_row, _column]
+                        have_moved = True
                     break
 
         # Step 2 : Move tiles
@@ -185,7 +197,8 @@ class gameGridLight:
                     self.matrix[_first_empty_row, _column] = _at[_row, _column]
                     _at[_row, _column] = 0
                     _first_empty_row -= 1
-        return score
+                    have_moved = True
+        return score, have_moved
 
     ###############
     # Can move
@@ -206,6 +219,18 @@ class gameGridLight:
                 elif self.matrix[row, column] == self.matrix[row +1, column]:
                     return True
         return False
+
+    def canMove(self, direction):
+        if direction == 'left':
+            return self.canMoveLeft()
+        if direction == 'right':
+            return self.canMoveRight()
+        if direction == 'up':
+            return self.canMoveUp()
+        if direction == 'down':
+            return self.canMoveDown()
+
+        raise Exception("Unknown direction " + str(direction))
 
     def canMoveLeft(self):
         # Find a tile with an empty box at its left

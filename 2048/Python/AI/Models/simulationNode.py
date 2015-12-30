@@ -10,10 +10,10 @@ class SimulationNode:
         # TODO : ajouter gestion des game over, pénalisation scores ? ou critère pour apprentissage après.
 
         # score cumulatif sur tous les états fils obtenu si on move left ici.
-        self.scoreLeft  = []
-        self.scoreRight = []
-        self.scoreUp    = []
-        self.scoreDown  = []
+        self.scoreLeft  = [0] # avoid empty list
+        self.scoreRight = [0] # avoid empty list
+        self.scoreUp    = [0] # avoid empty list
+        self.scoreDown  = [0] # avoid empty list
 
         # Sous arbres. Not used now
         self.nodeLeft   = None
@@ -21,7 +21,7 @@ class SimulationNode:
         self.nodeUp     = None
         self.nodeDown   = None
 
-        self.nbMoves = 0
+        self.nbSimulations = 0
 
     def addScore(self, direction, score):
         # move : left, right, up or down
@@ -38,6 +38,8 @@ class SimulationNode:
             self.scoreDown.append(score)
         else:
             raise Exception("Unknown direction : " + str(direction))
+
+        self.nbSimulations += 1
         return self
 
     def initNode(self, move):
@@ -73,7 +75,29 @@ class SimulationNode:
         print("  Down  : {0}".format(leftScore))
 
 
+    def getBestMove(self):
+        return self.getMaxMove()
 
+    def getMaxMove(self):
+        """
+        :return: move with the highest score
+        """
+        best_score = max(self.scoreLeft)
+        best_move  = 'left'
 
+        score = max(self.scoreRight)
+        if score > best_score:
+            best_score = score
+            best_move = 'right'
 
+        score = max(self.scoreUp)
+        if score > best_score:
+            best_score = score
+            best_move = 'up'
 
+        score = max(self.scoreDown)
+        if score > best_score:
+            # best_score = score
+            best_move = 'down'
+
+        return best_move

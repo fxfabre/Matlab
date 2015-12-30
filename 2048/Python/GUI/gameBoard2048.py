@@ -6,6 +6,7 @@ import GUI.game2048_grid as GG
 
 from AI.ai_random import ai_random
 from AI.ai_bestScoreNextMove import ai_bestScoreNextMove
+from AI.ai_MC import ai_MCsimulation
 
 
 class gameBoard2048:
@@ -25,7 +26,7 @@ class gameBoard2048:
         self.grid.set_score_callback(self.update_score)
 
         # Init AI
-        self._ai = ai_bestScoreNextMove()
+        self._ai = ai_MCsimulation()
         self._scoreHistory = []
         self._gridHistory = []
 
@@ -40,8 +41,6 @@ class gameBoard2048:
         """
             updates score along @value and @mode;
         """
-        print("Update score with value {0}".format(value))
-
         # relative mode
         if str(mode).lower() in ("add", "inc", "+"):
             # increment score value
@@ -75,7 +74,6 @@ class gameBoard2048:
         """
             keyboard input events manager;
         """
-        print("Move " + direction)
         # action slot multiplexer
         _slot = {
             "left" : self.grid.move_tiles_left,
@@ -97,7 +95,6 @@ class gameBoard2048:
         i = 0
         nextMove = 'up'
         while len(nextMove) > 0:
-            print("Start IA, step " + str(i))
             i += 1
 
             # Add history (grid and score) data
@@ -106,17 +103,14 @@ class gameBoard2048:
 
             # Get next move : 'left', 'right', 'up' or 'down'
             nextMove = self._ai.move_next(self, self._gridHistory, self._scoreHistory)
-            print("Moving to " + str(nextMove))
 
             # Simulate keyboard event
             self.move_tile(nextMove)
             self.grid.update()
 
-            print( self.grid.toIntMatrix() )
-
 #            if i > 1000:
 #                nextMove = ''
-        print("Game over in {0} iterations, stop game".format(i+1))
+        print("Game over in {0} iterations, score = {1}".format(i+1, self.score.get_score()))
 
     def __str__(self):
         returnString = ['']

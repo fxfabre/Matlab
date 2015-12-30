@@ -560,7 +560,6 @@ class Game2048Grid (GG.GameGrid):
             updates score along @value and @mode;
         """
         # object is callable?
-        print("Updating score with value {0}".format(value))
         if callable(self.__score_callback):
             self.__score_callback(value, mode)
 
