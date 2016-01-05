@@ -5,9 +5,10 @@ from AI.Models.simulationNode import SimulationNode
 import random
 import AI.GameGridLight as GGL
 import multiprocessing
+import time
 
 
-NB_PROCESS = 1
+NB_PROCESS = 4
 AVAILABLE_MOVES = ['down', 'left', 'right', 'up']
 NB_SIMULATIONS_MC = 1000 # Number of random simulations
 DEEP_SIMULATIONS  = 6    # Deep in the tree for MC simulations
@@ -69,7 +70,7 @@ def getBestMove(scores):
     best_move  = -1
 
     for i in range(len(scores)):
-        print(i, scores[i])
+#        print(i, scores[i])
         if scores[i] > best_score:
             best_score = scores[i]
             best_move  = AVAILABLE_MOVES[i]

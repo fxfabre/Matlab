@@ -306,7 +306,7 @@ class gameGridLight:
         _value = random.choice([2, 2, 2, 4, 2, 2, 2, 2, 2, 2])
         _row, _column = self.get_available_box()
         self.set_tile(_row, _column, _value)
-        print("Adding tile {0} at ({1}, {2})".format(_value, _row, _column))
+#        print("Adding tile {0} at ({1}, {2})".format(_value, _row, _column))
 
     def set_tile(self, row, col, value):
         if self.matrix[row, col] != 0:
