@@ -11,8 +11,6 @@ available_moves = ['down', 'left', 'right', 'up']
 class ai_MCsimulation:
 
     def __init__(self):
-        # TODO : initialize thread pool
-        self.pool = None
         pass
 
     def move_next(self, gameBoard, gridHistory, scoreHistory):

@@ -7,6 +7,7 @@ import GUI.game2048_grid as GG
 from AI.ai_random import ai_random
 from AI.ai_bestScoreNextMove import ai_bestScoreNextMove
 from AI.ai_MC import ai_MCsimulation
+from AI.ai_parallelMC import ai_parallelMC
 
 
 class gameBoard2048:
@@ -26,7 +27,7 @@ class gameBoard2048:
         self.grid.set_score_callback(self.update_score)
 
         # Init AI
-        self._ai = ai_MCsimulation()
+        self._ai = ai_parallelMC()
         self._scoreHistory = []
         self._gridHistory = []
 
@@ -108,7 +109,7 @@ class gameBoard2048:
             self.move_tile(nextMove)
             self.grid.update()
 
-#            if i > 1000:
+#            if i > 3:
 #                nextMove = ''
         print("Game over in {0} iterations, score = {1}".format(i+1, self.score.get_score()))
 
