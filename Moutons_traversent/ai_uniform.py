@@ -10,7 +10,7 @@ DISPLAY = True
 class Ai_uniform(BaseIA):
 
     def __init__(self):
-        pass
+        BaseIA.__init__(self)
 
     def move4(self, gameState):
         move = 0

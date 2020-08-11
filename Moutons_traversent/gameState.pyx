@@ -7,11 +7,13 @@ from constants import DISPLAY, NB_MOUTONS, NB_PILIERS
 class GameState:
 
     def __init__(self, ai, nb_pilones=NB_PILIERS):
-        self.nb_moutons = np.zeros(4, dtype=int)
+        cdef np.ndarray self.nb_moutons = np.zeros(4, dtype=int)
+
+
         self.nb_moutons[0] = NB_MOUTONS
-        self.nb_piliers = nb_pilones
-        self.movesLost = np.zeros(3)
-        self.totalMoves = np.zeros(3)
+        cdef int self.nb_piliers = nb_pilones
+        cdef np.ndarray self.movesLost = np.zeros(3)
+        cdef np.ndarray self.totalMoves = np.zeros(3)
         self.ai = ai
 
         self.availables_moves = {
@@ -43,7 +45,7 @@ class GameState:
             s = self.__hash__() # current state
             has_moved = self.availables_moves[action]()
             s_prime = self.__hash__()
-            self.ai.recordState(self, s, action, s_prime)
+            self.ai.recordState(self, s, action, s_prime, has_moved)
             return has_moved
         return self.availables_moves[action]()
 

@@ -7,7 +7,7 @@ import random
 class Ai_random(BaseIA):
 
     def __init__(self):
-        pass
+        BaseIA.__init__(self)
 
     def chooseMove(self, gameState):
         return random.randint(1,3)
